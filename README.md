@@ -44,7 +44,7 @@ module.exports = function (dust) {
 ```
 
 
-#### `cache` - (optional, defaults to true) Boolean
+#### `cache` (optional, defaults to true) Boolean
 Set to true to disable dust template caching, or false to enable.
 
 
