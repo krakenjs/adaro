@@ -1,0 +1,1 @@
+<!DOCTYPE html><html lang="en"><head><title>{title}</title></head><body><h1>node template test {@if cond="1 > 0"}{title}{/if}</h1></body></html>
