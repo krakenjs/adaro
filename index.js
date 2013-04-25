@@ -2,8 +2,10 @@
 
 // XXX - 'dustjs-helpers' has a side-effect of loading and returning dustjs-linkedin
 var dust = require('dustjs-helpers'),
-    fs = require('fs');
+    fs = require('fs'),
+    path = require('path');
 
+var LEADING_SEPARATOR = new RegExp('^[' + path.sep + ']?', '');
 
 function loadHelper(helper) {
     // Should be a dependency of the parent app
@@ -15,20 +17,73 @@ function loadHelper(helper) {
     }
 }
 
-function readFile(name, callback) {
-    fs.readFile(name, 'utf8', callback);
+function readFile(file, callback) {
+    fs.readFile(file, 'utf8', callback);
 }
 
 
-function createRenderer(config, loadHandler) {
+function isAbsolutePath(file) {
+    return path.resolve(file, file) === file;
+}
+
+
+function createRenderer(config, doRead) {
+    var ext, views, normalize;
+
     config = config || {};
     config.helpers && config.helpers.forEach(loadHelper);
     config.cache = (config.cache === undefined) ? true : !!config.cache;
 
-    dust.onLoad = loadHandler;
+    dust.onLoad = null;
+    ext = null;
+    views = null;
+    normalize = null;
 
-    return function (name, context, callback) {
-        dust.render(name, context, function () {
+    return function (file, options, callback) {
+        var name;
+
+        // Upon first invocation, initialize load handler with context-aware settings
+        // as provided by expressjs.
+        if (!dust.onLoad) {
+
+            ext = path.extname(file);
+            views = '.';
+
+            if (options) {
+                ext   = (options.ext && ('.' + options.ext)) || ext;
+                views = options.views || (options.settings && options.settings.views) || views;
+            }
+
+            normalize = function (file) {
+                var name;
+                name = file.replace(views, '');
+                name = name.replace(ext, '');
+                name = name.replace(LEADING_SEPARATOR, '');
+                return name;
+            };
+
+            dust.onLoad = function (file, cb) {
+                var name;
+
+                if ('' === path.extname(file)) {
+                    file += ext;
+                }
+
+                if (!isAbsolutePath(file)) {
+                    // TODO - This appears to be not compatible with Windows.
+                    file = path.join(views, file);
+                }
+
+                name = normalize(file);
+                name = name.replace(views, '');
+                name = name.replace(ext, '');
+                name = name.replace(LEADING_SEPARATOR, '');
+                doRead(file, name, cb);
+            }
+        }
+
+        name = normalize(file);
+        dust.render(name, options, function () {
             if (!config.cache) {
                 dust.cache = {};
             }
@@ -41,25 +96,33 @@ function createRenderer(config, loadHandler) {
 exports.js = function (config) {
     var read = (config && typeof config.read === 'function') ? config.read : readFile;
 
-    function onLoad(name, callback) {
-        read(name, function (err, data) {
+    function doRead(path, name, callback) {
+        read(path, function (err, data) {
             if (err) {
                 callback(err);
                 return;
             }
-            // Put directly into cache so it's available when onLoad returns.
+            // Put directly into cache so it's available when dust.onLoad returns.
             dust.cache[name] = dust.loadSource(data);
             callback();
         });
     }
 
-    return createRenderer(config, onLoad);
+    return createRenderer(config, doRead);
 };
 
 
 exports.dust = function (config) {
-    var onLoad = (config && typeof config.read === 'function') ? config.read : readFile;
+    var read = (config && typeof config.read === 'function') ? config.read : readFile;
+
+    function onLoad(path, name, callback) {
+        read(path, function (err, data) {
+            callback(err, data);
+        });
+    }
+
     return createRenderer(config, onLoad);
+
 };
 
 
