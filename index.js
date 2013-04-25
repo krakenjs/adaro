@@ -75,9 +75,6 @@ function createRenderer(config, doRead) {
                 }
 
                 name = normalize(file);
-                name = name.replace(views, '');
-                name = name.replace(ext, '');
-                name = name.replace(LEADING_SEPARATOR, '');
                 doRead(file, name, cb);
             }
         }
