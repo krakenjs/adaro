@@ -5,7 +5,9 @@ var dust = require('dustjs-helpers'),
     fs = require('fs'),
     path = require('path');
 
-var LEADING_SEPARATOR = new RegExp('^[' + path.sep + ']?', '');
+
+var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
+
 
 function loadHelper(helper) {
     // Should be a dependency of the parent app
@@ -16,6 +18,7 @@ function loadHelper(helper) {
         fn(dust);
     }
 }
+
 
 function readFile(file, callback) {
     fs.readFile(file, 'utf8', callback);
