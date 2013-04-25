@@ -65,12 +65,11 @@ function createRenderer(config, doRead) {
             dust.onLoad = function (file, cb) {
                 var name;
 
-                if ('' === path.extname(file)) {
+                if (!path.extname(file)) {
                     file += ext;
                 }
 
                 if (!isAbsolutePath(file)) {
-                    // TODO - This appears to be not compatible with Windows.
                     file = path.join(views, file);
                 }
 
