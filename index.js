@@ -31,7 +31,7 @@ function isAbsolutePath(file) {
 
 
 function createRenderer(config, doRead) {
-    var ext, views, normalize;
+    var ext, views, nameify;
 
     config = config || {};
     config.helpers && config.helpers.forEach(loadHelper);
@@ -40,7 +40,7 @@ function createRenderer(config, doRead) {
     dust.onLoad = null;
     ext = null;
     views = null;
-    normalize = null;
+    nameify = null;
 
     return function (file, options, callback) {
         var name;
@@ -57,11 +57,12 @@ function createRenderer(config, doRead) {
                 views = options.views || (options.settings && options.settings.views) || views;
             }
 
-            normalize = function (file) {
-                var name;
-                name = file.replace(views, '');
-                name = name.replace(ext, '');
-                name = name.replace(LEADING_SEPARATOR, '');
+            nameify = function (file) {
+                var name = file;
+                name = name.replace(views, ''); // Remove absolute path (if necessary)
+                name = name.replace(ext, ''); // Remove file extension
+                name = name.replace(LEADING_SEPARATOR, ''); // Remove leading slash (platform-dependent, if necessary)
+                name = name.replace(path.sep, '/'); // Ensure path separators in name are all forward-slashes.
                 return name;
             };
 
@@ -76,12 +77,12 @@ function createRenderer(config, doRead) {
                     file = path.join(views, file);
                 }
 
-                name = normalize(file);
+                name = nameify(file);
                 doRead(file, name, cb);
             }
         }
 
-        name = normalize(file);
+        name = nameify(file);
         dust.render(name, options, function () {
             if (!config.cache) {
                 dust.cache = {};
