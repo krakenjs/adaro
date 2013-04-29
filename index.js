@@ -20,7 +20,7 @@ function loadHelper(helper) {
 }
 
 
-function readFile(file, options, callback) {
+function readFile(file, callback) {
     fs.readFile(file, 'utf8', callback);
 }
 
@@ -75,7 +75,7 @@ function createRenderer(config, doRead) {
                     file = path.join(views, file);
                 }
 
-                doRead(file, nameify(file), options, cb);
+                doRead(file, nameify(file), cb);
             }
         }
 
@@ -96,8 +96,8 @@ exports.js = function (config) {
         read = config.read;
     }
 
-    function doRead(path, name, options, callback) {
-        read(path, options, function (err, data) {
+    function doRead(path, name, callback) {
+        read(path, function (err, data) {
             if (err) {
                 callback(err);
                 return;
@@ -115,8 +115,8 @@ exports.js = function (config) {
 exports.dust = function (config) {
     var read = (config && typeof config.read === 'function') ? config.read : readFile;
 
-    function onLoad(path, name, options, callback) {
-        read(path, options, function (err, data) {
+    function onLoad(path, name, callback) {
+        read(path, function (err, data) {
             callback(err, data);
         });
     }
