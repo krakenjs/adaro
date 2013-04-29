@@ -20,7 +20,7 @@ function loadHelper(helper) {
 }
 
 
-function readFile(file, callback) {
+function readFile(file, options, callback) {
     fs.readFile(file, 'utf8', callback);
 }
 
@@ -67,8 +67,6 @@ function createRenderer(config, doRead) {
             };
 
             dust.onLoad = function (file, cb) {
-                var name;
-
                 if (!path.extname(file)) {
                     file += ext;
                 }
@@ -77,8 +75,7 @@ function createRenderer(config, doRead) {
                     file = path.join(views, file);
                 }
 
-                name = nameify(file);
-                doRead(file, name, cb);
+                doRead(file, nameify(file), options, cb);
             }
         }
 
@@ -94,10 +91,13 @@ function createRenderer(config, doRead) {
 
 
 exports.js = function (config) {
-    var read = (config && typeof config.read === 'function') ? config.read : readFile;
+    var read = readFile;
+    if (config && typeof config.read === 'function') {
+        read = config.read;
+    }
 
-    function doRead(path, name, callback) {
-        read(path, function (err, data) {
+    function doRead(path, name, options, callback) {
+        read(path, options, function (err, data) {
             if (err) {
                 callback(err);
                 return;
@@ -115,8 +115,8 @@ exports.js = function (config) {
 exports.dust = function (config) {
     var read = (config && typeof config.read === 'function') ? config.read : readFile;
 
-    function onLoad(path, name, callback) {
-        read(path, function (err, data) {
+    function onLoad(path, name, options, callback) {
+        read(path, options, function (err, data) {
             callback(err, data);
         });
     }
@@ -126,3 +126,7 @@ exports.dust = function (config) {
 };
 
 
+exports.compile = dust.compile;
+
+
+exports.compileFn = dust.compileFn;

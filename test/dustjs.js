@@ -151,7 +151,7 @@ describe('express-dustjs', function () {
 
             var renderer = engine.dust({
                 cache: false,
-                read: function read(name, callback) {
+                read: function read(name, options, callback) {
                     templates.push(name);
                     fs.readFile(name, 'utf8', callback);
                 }
@@ -173,7 +173,7 @@ describe('express-dustjs', function () {
 
             var renderer = engine.js({
                 cache: false,
-                read: function read(name, callback) {
+                read: function read(name, options, callback) {
                     templates.push(name);
                     fs.readFile(name, 'utf8', callback);
                 }
