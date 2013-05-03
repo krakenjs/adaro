@@ -4,7 +4,8 @@
 var fs = require('fs'),
     path = require('path'),
     engine = require('../index'),
-    assert = require('chai').assert;
+    assert = require('chai').assert,
+    dust = require('dustjs-helpers');
 
 
 describe('express-dustjs', function () {
@@ -145,13 +146,14 @@ describe('express-dustjs', function () {
 
     describe('read API', function () {
 
+
         it('should use a custom dust read handler', function (next) {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust');
 
             var renderer = engine.dust({
                 cache: false,
-                read: function read(name, callback) {
+                read: function read(name, options, callback) {
                     templates.push(name);
                     fs.readFile(name, 'utf8', callback);
                 }
@@ -173,7 +175,7 @@ describe('express-dustjs', function () {
 
             var renderer = engine.js({
                 cache: false,
-                read: function read(name, callback) {
+                read: function read(name, options, callback) {
                     templates.push(name);
                     fs.readFile(name, 'utf8', callback);
                 }
@@ -187,6 +189,52 @@ describe('express-dustjs', function () {
                 next();
             });
         });
+
+
+        it('should use a custom dust read handler with partials', function (next) {
+            var templates = [];
+            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
+
+            var renderer = engine.dust({
+                cache: false,
+                read: function read(name, options, callback) {
+                    templates.push(name);
+                    fs.readFile(name, 'utf8', callback);
+                }
+            });
+
+            renderer(dustFile, context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, PARTIAL_RESULT);
+                assert.strictEqual(templates.length, 2);
+                assert.strictEqual(templates[0], dustFile);
+                next();
+            });
+        });
+
+
+        it('should provide context to custom read handler', function (next) {
+            var templates = [];
+            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
+
+            var renderer = engine.dust({
+                cache: false,
+                read: function read(name, options, callback) {
+                    templates.push(name);
+                    name = path.join(path.dirname(name), 'en_US', path.basename(name));
+                    fs.readFile(name, 'utf8', callback);
+                }
+            });
+
+            renderer(dustFile, context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, PARTIAL_RESULT);
+                assert.strictEqual(templates.length, 2);
+                assert.strictEqual(templates[0], dustFile);
+                next();
+            });
+        });
+
 
     });
 

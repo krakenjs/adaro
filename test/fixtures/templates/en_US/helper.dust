@@ -1,0 +1,1 @@
+<h1>node template test {@if cond="1 > 0"}{title}{/if}</h1>

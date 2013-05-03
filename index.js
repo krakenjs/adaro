@@ -20,7 +20,7 @@ function loadHelper(helper) {
 }
 
 
-function readFile(file, callback) {
+function readFile(file, options, callback) {
     fs.readFile(file, 'utf8', callback);
 }
 
@@ -38,17 +38,17 @@ function createRenderer(config, doRead) {
     config.cache = (config.cache === undefined) ? true : !!config.cache;
 
     dust.onLoad = null;
+    dust.load = (typeof dust._origLoad === 'function') ? dust._origLoad : dust.load;
     ext = null;
     views = null;
     nameify = null;
 
+
     return function (file, options, callback) {
-        var name;
 
         // Upon first invocation, initialize load handler with context-aware settings
         // as provided by expressjs.
-        if (!dust.onLoad) {
-
+        if (dust.load.name !== 'monkeyPatch') {
             ext = path.extname(file);
             views = '.';
 
@@ -66,21 +66,62 @@ function createRenderer(config, doRead) {
                 return name;
             };
 
-            dust.onLoad = function (file, cb) {
-                if (!path.extname(file)) {
-                    file += ext;
-                }
 
-                if (!isAbsolutePath(file)) {
-                    file = path.join(views, file);
-                }
+            dust._origLoad = dust.load;
+            dust.load = function monkeyPatch(name, chunk, context) {
+                dust.cache.__defineGetter__(name, function () {
+                    delete dust.cache[name];
 
-                doRead(file, nameify(file), cb);
-            }
+                    return function shim() {
+                        var file = name;
+
+                        if (!path.extname(file)) {
+                            file += ext;
+                        }
+
+                        if (!isAbsolutePath(file)) {
+                            file = path.join(views, file);
+                        }
+
+                        return chunk.map(function (chunk) {
+                            doRead(file, nameify(file), context.current(), function (err, src) {
+                                if (typeof src !== 'function') {
+                                    src = dust.loadSource(dust.compile(src));
+                                }
+                                delete dust.cache[name];
+                                src(chunk, context).end();
+                            });
+                        });
+                    }
+                });
+
+                return dust._origLoad(name, chunk, context);
+            };
+
+//            dust.onLoad = function (trojan, cb) {
+//                var file = String(trojan);
+//
+//                if (!path.extname(file)) {
+//                    file += ext;
+//                }
+//
+//                if (!isAbsolutePath(file)) {
+//                    file = path.join(views, file);
+//                }
+//
+//                doRead(file, nameify(file), trojan.options, cb);
+//            }
         }
 
-        name = nameify(file);
-        dust.render(name, options, function () {
+        var trojanHorse = {
+            name: nameify(file),
+            options: options,
+            toString: function () {
+                return this.name;
+            }
+        };
+
+        dust.render(trojanHorse, options, function () {
             if (!config.cache) {
                 dust.cache = {};
             }
@@ -92,19 +133,19 @@ function createRenderer(config, doRead) {
 
 exports.js = function (config) {
     var read = readFile;
-    if (config && typeof config.read === 'function') {
+    if (config && (typeof config.read === 'function')) {
         read = config.read;
     }
 
-    function doRead(path, name, callback) {
-        read(path, function (err, data) {
+    function doRead(path, name, options, callback) {
+        read(path, options, function (err, data) {
             if (err) {
                 callback(err);
                 return;
             }
             // Put directly into cache so it's available when dust.onLoad returns.
-            dust.cache[name] = dust.loadSource(data);
-            callback();
+            dust.loadSource(data);
+            callback(null, dust.cache[name]);
         });
     }
 
@@ -113,16 +154,16 @@ exports.js = function (config) {
 
 
 exports.dust = function (config) {
-    var read = (config && typeof config.read === 'function') ? config.read : readFile;
+    var read = readFile;
+    if (config && (typeof config.read === 'function')) {
+        read = config.read;
+    }
 
-    function onLoad(path, name, callback) {
-        read(path, function (err, data) {
-            callback(err, data);
-        });
+    function onLoad(path, name, options, callback) {
+        read(path, options, callback);
     }
 
     return createRenderer(config, onLoad);
-
 };
 
 
@@ -130,3 +171,4 @@ exports.compile = dust.compile;
 
 
 exports.compileFn = dust.compileFn;
+
