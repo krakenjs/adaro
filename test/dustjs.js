@@ -37,6 +37,7 @@ describe('express-dustjs', function () {
             renderer = engine.dust({cache: false});
         });
 
+
         it('should render a template with a relative path', function (next) {
             renderer('index.dust', context, function (err, data) {
                 assert.ok(!err);
@@ -44,6 +45,7 @@ describe('express-dustjs', function () {
                 next();
             });
         });
+
 
         it('should render a template with an absolute path', function (next) {
             renderer(path.join(context.settings.views, 'index.dust'), context, function (err, data) {
@@ -53,10 +55,30 @@ describe('express-dustjs', function () {
             });
         });
 
+
         it('should render a template in a subdirectory', function (next) {
             renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, SUBDIR_RESULT);
+                next();
+            });
+        });
+
+
+        it('should use onLoad if available', function (next) {
+            var invoked = false;
+
+            dust.onLoad = function (view, cb) {
+                invoked = true;
+                fs.readFile(view, 'utf8', cb);
+            };
+
+            renderer = engine.dust({cache: false});
+            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+                assert.ok(!err);
+                assert.isTrue(invoked);
+                assert.strictEqual(data, SUBDIR_RESULT);
+                dust.onLoad = undefined;
                 next();
             });
         });
@@ -72,6 +94,7 @@ describe('express-dustjs', function () {
             renderer = engine.js({cache: false});
         });
 
+
         it('should render a template with a relative path', function (next) {
             renderer('index.js', context, function (err, data) {
                 assert.ok(!err);
@@ -79,6 +102,7 @@ describe('express-dustjs', function () {
                 next();
             });
         });
+
 
         it('should render a template with an absolute path', function (next) {
             renderer(path.join(context.settings.views, 'index.js'), context, function (err, data) {
@@ -88,10 +112,30 @@ describe('express-dustjs', function () {
             });
         });
 
+
         it('should render a template in a subdirectory', function (next) {
             renderer(path.join(context.settings.views, 'inc', 'include.js'), context, function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, SUBDIR_RESULT);
+                next();
+            });
+        });
+
+
+        it('should use onLoad if available', function (next) {
+            var invoked = false;
+
+            dust.onLoad = function (view, cb) {
+                invoked = true;
+                fs.readFile(view, 'utf8', cb);
+            };
+
+            renderer = engine.js({cache: false});
+            renderer(path.join(context.settings.views, 'inc', 'include.js'), context, function (err, data) {
+                assert.ok(!err);
+                assert.isTrue(invoked);
+                assert.strictEqual(data, SUBDIR_RESULT);
+                dust.onLoad = undefined;
                 next();
             });
         });
@@ -221,7 +265,9 @@ describe('express-dustjs', function () {
                 cache: false,
                 read: function read(name, options, callback) {
                     templates.push(name);
-                    name = path.join(path.dirname(name), 'en_US', path.basename(name));
+
+                    var views = options.views || (options.settings && options.settings.views);
+                    name = path.join(views, 'en_US', name.replace(views, ''));
                     fs.readFile(name, 'utf8', callback);
                 }
             });
