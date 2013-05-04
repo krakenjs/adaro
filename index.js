@@ -8,7 +8,7 @@ var fs = require('fs'),
 
 
 var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
-var MY_SPECIAL_FRIEND = '$|_-^-_|$';
+var MY_SPECIAL_FRIEND = '☃';
 
 
 function requireAny(/*modules*/) {
@@ -104,16 +104,16 @@ function createRenderer(config, doRead) {
             dust.load = function cabbage(name, chunk, context) {
                 var head = context.stack.head;
 
-                // Only use patch only for express rendering (existence of `views` or `settings.views`)
+                // Only use patch for express rendering (existence of `views` or `settings.views`)
                 if (!(head.views || (head.settings && head.settings.views))) {
                     return dust.__cabbage__.apply(undefined, arguments);
                 }
 
                 // We exploit the cache to hook into load/onLoad behavior. Dust first checks the cache before
-                // trying to load (dust.cache[name]), so if we add a custom getter and give it a custom key name
-                // we can get dust to call our code.
+                // trying to load (using dust.cache[name]), so if we add a custom getter for a known key we can
+                // get dust to call our code and replace its behavior without changing its internals.
                 dust.cache.__defineGetter__(MY_SPECIAL_FRIEND, function () {
-                    // Remove the getter immediately
+                    // Remove the getter immediately (must delete as it's a getter. setting it to undefined will fail.)
                     delete dust.cache[MY_SPECIAL_FRIEND];
 
                     return function (chunk, context) {
@@ -134,7 +134,7 @@ function createRenderer(config, doRead) {
                                 if (typeof src !== 'function') {
                                     src = dust.loadSource(dust.compile(src));
                                 }
-                                delete dust.cache[name];
+                                dust.cache[name] = undefined;
                                 src(chunk, context).end();
                             });
                         });
@@ -169,6 +169,7 @@ exports.js = function (config) {
                 return;
             }
             // Put directly into cache so it's available when dust.onLoad returns.
+            // This call is synchronous and the cache entry will get purged immediately.
             dust.loadSource(data);
             callback(null, dust.cache[name]);
         });
