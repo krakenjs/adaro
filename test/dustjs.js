@@ -26,6 +26,15 @@ describe('express-dustjs', function () {
         context.settings = {
             views: path.join(process.cwd(), 'fixtures', 'templates')
         };
+
+        dust.onLoad = function (file, cb) {
+            fs.readFile(file, 'utf8', cb);
+        };
+    });
+
+
+    after(function () {
+        dust.onLoad = undefined;
     });
 
 
@@ -64,31 +73,19 @@ describe('express-dustjs', function () {
             });
         });
 
-
-        it('should use onLoad if available', function (next) {
-            var invoked = false;
-
-            dust.onLoad = function (view, cb) {
-                invoked = true;
-                fs.readFile(view, 'utf8', cb);
-            };
-
-            renderer = engine.dust({cache: false});
-            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, SUBDIR_RESULT);
-                dust.onLoad = undefined;
-                next();
-            });
-        });
-
     });
 
 
     describe('compiled js', function () {
 
         var renderer;
+
+        before(function () {
+            dust.onLoad = function (view, cb) {
+                fs.readFile(view, 'utf8', cb);
+            };
+        });
+
 
         it('should create a renderer', function () {
             renderer = engine.js({cache: false});
@@ -97,6 +94,7 @@ describe('express-dustjs', function () {
 
         it('should render a template with a relative path', function (next) {
             renderer('index.js', context, function (err, data) {
+                err && console.dir(err.message);
                 assert.ok(!err);
                 assert.strictEqual(data, RESULT);
                 next();
@@ -145,6 +143,12 @@ describe('express-dustjs', function () {
 
     describe('partials', function () {
 
+        before(function () {
+            dust.onLoad = function (view, cb) {
+                fs.readFile(view, 'utf8', cb);
+            };
+        });
+
         it('should render a template', function (next) {
             var renderer = engine.dust({cache: false});
             renderer(path.join(process.cwd(), 'fixtures', 'templates', 'master.dust'), context, function (err, data) {
@@ -190,18 +194,39 @@ describe('express-dustjs', function () {
 
     describe('read API', function () {
 
+        var renderer;
+
+        beforeEach(function () {
+            dust.onLoad = undefined;
+        });
+
+        it('should use onLoad options if available', function (next) {
+            var invoked = undefined;
+
+            renderer = engine.dust({cache: false});
+            dust.onLoad = function (view, options, cb) {
+                invoked = options;
+                fs.readFile(view, 'utf8', cb);
+            };
+
+            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+                assert.ok(!err);
+                assert.isObject(invoked);
+                assert.strictEqual(data, SUBDIR_RESULT);
+                next();
+            });
+        });
+
 
         it('should use a custom dust read handler', function (next) {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust');
 
-            var renderer = engine.dust({
-                cache: false,
-                read: function read(name, options, callback) {
-                    templates.push(name);
-                    fs.readFile(name, 'utf8', callback);
-                }
-            });
+            renderer = engine.dust({ cache: false });
+            dust.onLoad = function (view, options, callback) {
+                templates.push(view);
+                fs.readFile(view, 'utf8', callback);
+            };
 
             renderer(dustFile, context, function (err, data) {
                 assert.ok(!err);
@@ -217,13 +242,11 @@ describe('express-dustjs', function () {
             var templates = [];
             var jsFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.js');
 
-            var renderer = engine.js({
-                cache: false,
-                read: function read(name, options, callback) {
-                    templates.push(name);
-                    fs.readFile(name, 'utf8', callback);
-                }
-            });
+            renderer = engine.js({ cache: false });
+            dust.onLoad = function (view, options, callback) {
+                templates.push(view);
+                fs.readFile(view, 'utf8', callback);
+            };
 
             renderer(jsFile, context, function (err, data) {
                 assert.ok(!err);
@@ -239,13 +262,11 @@ describe('express-dustjs', function () {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
-            var renderer = engine.dust({
-                cache: false,
-                read: function read(name, options, callback) {
-                    templates.push(name);
-                    fs.readFile(name, 'utf8', callback);
-                }
-            });
+            renderer = engine.dust({ cache: false });
+            dust.onLoad = function (view, options, callback) {
+                templates.push(view);
+                fs.readFile(view, 'utf8', callback);
+            };
 
             renderer(dustFile, context, function (err, data) {
                 assert.ok(!err);
@@ -261,16 +282,14 @@ describe('express-dustjs', function () {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
-            var renderer = engine.dust({
-                cache: false,
-                read: function read(name, options, callback) {
-                    templates.push(name);
+            renderer = engine.dust({ cache: false });
+            dust.onLoad = function (view, options, callback) {
+                templates.push(view);
 
-                    var views = options.views || (options.settings && options.settings.views);
-                    name = path.join(views, 'en_US', name.replace(views, ''));
-                    fs.readFile(name, 'utf8', callback);
-                }
-            });
+                var views = options.views || (options.settings && options.settings.views);
+                view = path.join(views, 'en_US', view.replace(views, ''));
+                fs.readFile(view, 'utf8', callback);
+            };
 
             renderer(dustFile, context, function (err, data) {
                 assert.ok(!err);

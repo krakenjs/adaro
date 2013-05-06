@@ -43,13 +43,13 @@ function loadHelper(helper) {
 }
 
 
-function readFile(file, options, callback) {
-    if (dust.onLoad) {
-        dust.onLoad(file, callback);
-        return;
-    }
-    fs.readFile(file, 'utf8', callback);
-}
+//function readFile(file, options, callback) {
+//    if (dust.onLoad) {
+//        dust.onLoad(file, callback);
+//        return;
+//    }
+//    fs.readFile(file, 'utf8', callback);
+//}
 
 
 function isAbsolutePath(file) {
@@ -79,9 +79,10 @@ function createRenderer(config, doRead) {
         //   -     X    patch and use `read` only for express render
         //   X     X    patch and use `read` only for express render
 
-        if (dust.load.name !== 'cabbage') {
+        if (!nameify) {
             ext = path.extname(file);
             views = '.';
+
 
             if (options) {
                 ext   = (options.ext && ('.' + options.ext)) || ext;
@@ -96,6 +97,10 @@ function createRenderer(config, doRead) {
                 name = name.replace(path.sep, '/'); // Ensure path separators in name are all forward-slashes.
                 return name;
             };
+        }
+
+
+        if (dust.load.name !== 'cabbage' && typeof(dust.onLoad) === 'function') {
 
             // CABBAGE PATCH - Here comes the fun...
             // In order to provide request context to our `read` method we need to get creative with dust.
@@ -156,14 +161,15 @@ function createRenderer(config, doRead) {
 
 
 exports.js = function (config) {
-    var read = readFile;
-    if (config && (typeof config.read === 'function')) {
-        read = config.read;
-        config.cache = false;
-    }
+//    var read = readFile;
+//    if (config && (typeof config.read === 'function')) {
+//        read = config.read;
+//        config.cache = false;
+//    }
 
     function doRead(path, name, options, callback) {
-        read(path, options, function (err, data) {
+
+        function loadJS(err, data) {
             if (err) {
                 callback(err);
                 return;
@@ -172,7 +178,13 @@ exports.js = function (config) {
             // This call is synchronous and the cache entry will get purged immediately.
             dust.loadSource(data);
             callback(null, dust.cache[name]);
-        });
+        }
+
+        var args = [path, loadJS];
+        if (dust.onLoad.length === 3) {
+            args.splice(1, 0, options);
+        }
+        dust.onLoad.apply(undefined, args);
     }
 
     return createRenderer(config, doRead);
@@ -180,14 +192,18 @@ exports.js = function (config) {
 
 
 exports.dust = function (config) {
-    var read = readFile;
-    if (config && (typeof config.read === 'function')) {
-        read = config.read;
-        config.cache = false;
-    }
+//    var read = readFile;
+//    if (config && (typeof config.read === 'function')) {
+//        read = config.read;
+//        config.cache = false;
+//    }
 
     function doRead(path, name, options, callback) {
-        read(path, options, callback);
+        var args = [path, callback];
+        if (dust.onLoad.length === 3) {
+            args.splice(1, 0, options);
+        }
+        dust.onLoad.apply(undefined, args);
     }
 
     return createRenderer(config, doRead);
