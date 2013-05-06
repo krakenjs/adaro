@@ -15,6 +15,9 @@ describe('express-dustjs', function () {
     var HELPER_RESULT = '<h1>node template test Hello, world!</h1>';
     var PARTIAL_RESULT = '<!DOCTYPE html><html lang="en"><head><title>Hello, world!</title></head><body><h1>node template test Hello, world!</h1></body></html>';
     var SUBDIR_RESULT = '<p>howdy doodie</p>';
+    var LAYOUT_RESULT = '<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>';
+    var ALT_LAYOUT_RESULT = '<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>';
+
 
     before(function () {
         // Ensure the test case assumes it's being run from application root.
@@ -302,5 +305,79 @@ describe('express-dustjs', function () {
 
     });
 
+
+    describe('layout', function () {
+
+        var renderer;
+
+        before(function () {
+            engine.onLoad = function (view, callback) {
+                fs.readFile(view, 'utf8', callback);
+            };
+        });
+
+        after(function () {
+            delete context.layout;
+        });
+
+
+
+        it('should support a global layout', function (next) {
+            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
+            renderer('inc/include.dust', context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, LAYOUT_RESULT);
+                next();
+            });
+        });
+
+
+        it('should allow local layouts', function (next) {
+            context.layout = 'layouts/altmaster';
+
+            renderer = engine.dust({ cache: false });
+            renderer('inc/include.dust', context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, ALT_LAYOUT_RESULT);
+                next();
+            });
+        });
+
+
+        it('should override global with local layouts', function (next) {
+            context.layout = 'layouts/altmaster';
+
+            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
+
+            // First test the override
+            renderer('inc/include.dust', context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, ALT_LAYOUT_RESULT);
+
+                delete context.layout;
+
+                // Then make sure it goes back to global value correctly
+                renderer('inc/include.dust', context, function (err, data) {
+                    assert.ok(!err);
+                    assert.strictEqual(data, LAYOUT_RESULT);
+                    next();
+                });
+            });
+        });
+
+
+        it('should allow layout to be disabled', function (next) {
+            context.layout = false;
+
+            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
+            renderer('inc/include.dust', context, function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, SUBDIR_RESULT);
+                next();
+            });
+        });
+
+
+    });
 
 });

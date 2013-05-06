@@ -62,6 +62,7 @@ function createRenderer(config, doRead) {
 
 
     return function (file, options, callback) {
+        var name, layout;
 
         // Patching Rules
         // onLoad read
@@ -125,8 +126,8 @@ function createRenderer(config, doRead) {
 
                         // Emulate what dust does when onLoad is called.
                         return chunk.map(function (chunk) {
-                            // Always provide the head to read in this context.
-                            doRead(file, nameify(file), context.stack.head, function (err, src) {
+                            // TODO: Hoping context.current() supports necessary use cases.
+                            doRead(file, nameify(file), context.current(), function (err, src) {
                                 if (typeof src !== 'function') {
                                     src = dust.loadSource(dust.compile(src));
                                 }
@@ -141,7 +142,15 @@ function createRenderer(config, doRead) {
             };
         }
 
-        dust.render(nameify(file), options, function () {
+        // Simple layout support. An explicit 'layout: false' disables, otherwise resolve.
+        name = nameify(file);
+        layout = (options.layout === false) ? undefined : (options.layout || config.layout);
+        if (typeof layout === 'string') {
+            options._main = name;
+            name = layout;
+        }
+
+        dust.render(name, options, function () {
             if (!config.cache) {
                 dust.cache = {};
             }
