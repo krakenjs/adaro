@@ -4,8 +4,7 @@
 var fs = require('fs'),
     path = require('path'),
     engine = require('../index'),
-    assert = require('chai').assert,
-    dust = require('dustjs-helpers');
+    assert = require('chai').assert;
 
 
 describe('express-dustjs', function () {
@@ -27,14 +26,14 @@ describe('express-dustjs', function () {
             views: path.join(process.cwd(), 'fixtures', 'templates')
         };
 
-        dust.onLoad = function (file, cb) {
+        engine.onLoad = function (file, cb) {
             fs.readFile(file, 'utf8', cb);
         };
     });
 
 
     after(function () {
-        dust.onLoad = undefined;
+        engine.onLoad = undefined;
     });
 
 
@@ -81,7 +80,7 @@ describe('express-dustjs', function () {
         var renderer;
 
         before(function () {
-            dust.onLoad = function (view, cb) {
+            engine.onLoad = function (view, cb) {
                 fs.readFile(view, 'utf8', cb);
             };
         });
@@ -123,7 +122,7 @@ describe('express-dustjs', function () {
         it('should use onLoad if available', function (next) {
             var invoked = false;
 
-            dust.onLoad = function (view, cb) {
+            engine.onLoad = function (view, cb) {
                 invoked = true;
                 fs.readFile(view, 'utf8', cb);
             };
@@ -133,7 +132,7 @@ describe('express-dustjs', function () {
                 assert.ok(!err);
                 assert.isTrue(invoked);
                 assert.strictEqual(data, SUBDIR_RESULT);
-                dust.onLoad = undefined;
+                engine.onLoad = undefined;
                 next();
             });
         });
@@ -144,7 +143,7 @@ describe('express-dustjs', function () {
     describe('partials', function () {
 
         before(function () {
-            dust.onLoad = function (view, cb) {
+            engine.onLoad = function (view, cb) {
                 fs.readFile(view, 'utf8', cb);
             };
         });
@@ -197,14 +196,14 @@ describe('express-dustjs', function () {
         var renderer;
 
         beforeEach(function () {
-            dust.onLoad = undefined;
+            engine.onLoad = undefined;
         });
 
         it('should use onLoad options if available', function (next) {
             var invoked = undefined;
 
             renderer = engine.dust({cache: false});
-            dust.onLoad = function (view, options, cb) {
+            engine.onLoad = function (view, options, cb) {
                 invoked = options;
                 fs.readFile(view, 'utf8', cb);
             };
@@ -223,7 +222,7 @@ describe('express-dustjs', function () {
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust');
 
             renderer = engine.dust({ cache: false });
-            dust.onLoad = function (view, options, callback) {
+            engine.onLoad = function (view, options, callback) {
                 templates.push(view);
                 fs.readFile(view, 'utf8', callback);
             };
@@ -243,7 +242,7 @@ describe('express-dustjs', function () {
             var jsFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.js');
 
             renderer = engine.js({ cache: false });
-            dust.onLoad = function (view, options, callback) {
+            engine.onLoad = function (view, options, callback) {
                 templates.push(view);
                 fs.readFile(view, 'utf8', callback);
             };
@@ -263,7 +262,7 @@ describe('express-dustjs', function () {
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
             renderer = engine.dust({ cache: false });
-            dust.onLoad = function (view, options, callback) {
+            engine.onLoad = function (view, options, callback) {
                 templates.push(view);
                 fs.readFile(view, 'utf8', callback);
             };
@@ -283,7 +282,7 @@ describe('express-dustjs', function () {
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
             renderer = engine.dust({ cache: false });
-            dust.onLoad = function (view, options, callback) {
+            engine.onLoad = function (view, options, callback) {
                 templates.push(view);
 
                 var views = options.views || (options.settings && options.settings.views);

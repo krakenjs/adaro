@@ -43,15 +43,6 @@ function loadHelper(helper) {
 }
 
 
-//function readFile(file, options, callback) {
-//    if (dust.onLoad) {
-//        dust.onLoad(file, callback);
-//        return;
-//    }
-//    fs.readFile(file, 'utf8', callback);
-//}
-
-
 function isAbsolutePath(file) {
     return path.resolve(file, file) === file;
 }
@@ -161,11 +152,6 @@ function createRenderer(config, doRead) {
 
 
 exports.js = function (config) {
-//    var read = readFile;
-//    if (config && (typeof config.read === 'function')) {
-//        read = config.read;
-//        config.cache = false;
-//    }
 
     function doRead(path, name, options, callback) {
 
@@ -192,12 +178,6 @@ exports.js = function (config) {
 
 
 exports.dust = function (config) {
-//    var read = readFile;
-//    if (config && (typeof config.read === 'function')) {
-//        read = config.read;
-//        config.cache = false;
-//    }
-
     function doRead(path, name, options, callback) {
         var args = [path, callback];
         if (dust.onLoad.length === 3) {
@@ -215,3 +195,12 @@ exports.compile = dust.compile;
 
 exports.compileFn = dust.compileFn;
 
+
+exports.__defineGetter__('onLoad', function () {
+    return dust.onLoad;
+});
+
+
+exports.__defineSetter__('onLoad', function (value) {
+    dust.onLoad = value;
+});
