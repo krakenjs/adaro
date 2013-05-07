@@ -1,4 +1,4 @@
-/*global describe:false, it:false, before:false, after:false*/
+/*global describe:false, it:false, before:false, beforeEach:false, after:false, afterEach:false*/
 'use strict';
 
 var fs = require('fs'),
@@ -25,12 +25,14 @@ describe('express-dustjs', function () {
         process.chdir(__dirname);
 
         // Simulate express options
+        context.ext = 'dust';
         context.settings = {
             views: path.join(process.cwd(), 'fixtures', 'templates')
         };
 
-        engine.onLoad = function (file, cb) {
-            fs.readFile(file, 'utf8', cb);
+        engine.onLoad = function (name, cb) {
+            name = path.join(context.settings.views, name + '.' + context.ext);
+            fs.readFile(name, 'utf8', cb);
         };
     });
 
@@ -43,6 +45,11 @@ describe('express-dustjs', function () {
     describe('dust', function () {
 
         var renderer;
+
+        before(function () {
+            context.ext = 'dust';
+        });
+
 
         it('should create a renderer', function () {
             renderer = engine.dust({cache: false});
@@ -83,8 +90,10 @@ describe('express-dustjs', function () {
         var renderer;
 
         before(function () {
-            engine.onLoad = function (view, cb) {
-                fs.readFile(view, 'utf8', cb);
+            context.ext = 'js';
+            engine.onLoad = function (name, cb) {
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
             };
         });
 
@@ -125,9 +134,10 @@ describe('express-dustjs', function () {
         it('should use onLoad if available', function (next) {
             var invoked = false;
 
-            engine.onLoad = function (view, cb) {
+            engine.onLoad = function (name, cb) {
                 invoked = true;
-                fs.readFile(view, 'utf8', cb);
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
             };
 
             renderer = engine.js({cache: false});
@@ -146,8 +156,10 @@ describe('express-dustjs', function () {
     describe('partials', function () {
 
         before(function () {
-            engine.onLoad = function (view, cb) {
-                fs.readFile(view, 'utf8', cb);
+            context.ext = 'dust';
+            engine.onLoad = function (name, cb) {
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
             };
         });
 
@@ -171,6 +183,13 @@ describe('express-dustjs', function () {
                 cache: false
             });
 
+            engine.onLoad = function (name, cb) {
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
+            };
+
+            context.ext = 'dust';
+
             renderer(path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust'), context, function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, HELPER_RESULT);
@@ -178,11 +197,19 @@ describe('express-dustjs', function () {
             });
         });
 
+
         it('should use helpers for precompiled js', function (next) {
             var renderer = engine.js({
                 helpers: ['dustjs-helpers'],
                 cache: false
             });
+
+            engine.onLoad = function (name, cb) {
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
+            };
+
+            context.ext = 'js';
 
             renderer(path.join(process.cwd(), 'fixtures', 'templates', 'helper.js'), context, function (err, data) {
                 assert.ok(!err);
@@ -198,17 +225,24 @@ describe('express-dustjs', function () {
 
         var renderer;
 
+        before(function () {
+            context.ext = 'dust';
+        });
+
+
         beforeEach(function () {
             engine.onLoad = undefined;
         });
+
 
         it('should use onLoad options if available', function (next) {
             var invoked = undefined;
 
             renderer = engine.dust({cache: false});
-            engine.onLoad = function (view, options, cb) {
+            engine.onLoad = function (name, options, cb) {
                 invoked = options;
-                fs.readFile(view, 'utf8', cb);
+                name = path.join(context.settings.views, name + '.' + options.ext);
+                fs.readFile(name, 'utf8', cb);
             };
 
             renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
@@ -220,54 +254,15 @@ describe('express-dustjs', function () {
         });
 
 
-        it('should use a custom dust read handler', function (next) {
-            var templates = [];
-            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust');
-
-            renderer = engine.dust({ cache: false });
-            engine.onLoad = function (view, options, callback) {
-                templates.push(view);
-                fs.readFile(view, 'utf8', callback);
-            };
-
-            renderer(dustFile, context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, HELPER_RESULT);
-                assert.strictEqual(templates.length, 1);
-                assert.strictEqual(templates[0], dustFile);
-                next();
-            });
-        });
-
-
-        it('should use a custom js read handler', function (next) {
-            var templates = [];
-            var jsFile = path.join(process.cwd(), 'fixtures', 'templates', 'helper.js');
-
-            renderer = engine.js({ cache: false });
-            engine.onLoad = function (view, options, callback) {
-                templates.push(view);
-                fs.readFile(view, 'utf8', callback);
-            };
-
-            renderer(jsFile, context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, HELPER_RESULT);
-                assert.strictEqual(templates.length, 1);
-                assert.strictEqual(templates[0], jsFile);
-                next();
-            });
-        });
-
-
         it('should use a custom dust read handler with partials', function (next) {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
             renderer = engine.dust({ cache: false });
-            engine.onLoad = function (view, options, callback) {
-                templates.push(view);
-                fs.readFile(view, 'utf8', callback);
+            engine.onLoad = function (name, options, callback) {
+                name = path.join(context.settings.views, name + '.' + options.ext);
+                templates.push(name);
+                fs.readFile(name, 'utf8', callback);
             };
 
             renderer(dustFile, context, function (err, data) {
@@ -286,10 +281,8 @@ describe('express-dustjs', function () {
 
             renderer = engine.dust({ cache: false });
             engine.onLoad = function (view, options, callback) {
+                view = path.join(options.settings.views, 'en_US', view + '.' + options.ext);
                 templates.push(view);
-
-                var views = options.views || (options.settings && options.settings.views);
-                view = path.join(views, 'en_US', view.replace(views, ''));
                 fs.readFile(view, 'utf8', callback);
             };
 
@@ -297,7 +290,6 @@ describe('express-dustjs', function () {
                 assert.ok(!err);
                 assert.strictEqual(data, PARTIAL_RESULT);
                 assert.strictEqual(templates.length, 2);
-                assert.strictEqual(templates[0], dustFile);
                 next();
             });
         });
@@ -311,15 +303,17 @@ describe('express-dustjs', function () {
         var renderer;
 
         before(function () {
-            engine.onLoad = function (view, callback) {
+            context.ext = 'dust';
+            engine.onLoad = function (view, options, callback) {
+                view = path.join(options.settings.views, view + '.' + options.ext);
                 fs.readFile(view, 'utf8', callback);
             };
         });
 
+
         after(function () {
             delete context.layout;
         });
-
 
 
         it('should support a global layout', function (next) {

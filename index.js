@@ -116,21 +116,18 @@ function createRenderer(config, doRead) {
                     return function (chunk, context) {
                         var file = name;
 
-                        if (!path.extname(file)) {
-                            file += ext;
-                        }
-
-                        if (!isAbsolutePath(file)) {
-                            file = path.join(views, file);
-                        }
-
                         // Emulate what dust does when onLoad is called.
                         return chunk.map(function (chunk) {
                             // TODO: Hoping context.current() supports necessary use cases.
                             doRead(file, nameify(file), context.current(), function (err, src) {
+                                if (err) {
+                                    return chunk.setError(err)
+                                }
+
                                 if (typeof src !== 'function') {
                                     src = dust.loadSource(dust.compile(src));
                                 }
+
                                 dust.cache[name] = undefined;
                                 src(chunk, context).end();
                             });
@@ -163,7 +160,6 @@ function createRenderer(config, doRead) {
 exports.js = function (config) {
 
     function doRead(path, name, options, callback) {
-
         function loadJS(err, data) {
             if (err) {
                 callback(err);
