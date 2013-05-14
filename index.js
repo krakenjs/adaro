@@ -43,11 +43,6 @@ function loadHelper(helper) {
 }
 
 
-function isAbsolutePath(file) {
-    return path.resolve(file, file) === file;
-}
-
-
 function createRenderer(config, doRead) {
     var ext, views, nameify;
 
@@ -63,13 +58,6 @@ function createRenderer(config, doRead) {
 
     return function (file, options, callback) {
         var name, layout;
-
-        // Patching Rules
-        // onLoad read
-        //   -     -    patch and use default fs `read` only for express render
-        //   X     -    Leave default behavior
-        //   -     X    patch and use `read` only for express render
-        //   X     X    patch and use `read` only for express render
 
         if (!nameify) {
             ext = path.extname(file);
@@ -90,7 +78,6 @@ function createRenderer(config, doRead) {
                 return name;
             };
         }
-
 
         if (dust.load.name !== 'cabbage' && typeof(dust.onLoad) === 'function') {
 
@@ -158,7 +145,6 @@ function createRenderer(config, doRead) {
 
 
 exports.js = function (config) {
-
     function doRead(path, name, options, callback) {
         function loadJS(err, data) {
             if (err) {

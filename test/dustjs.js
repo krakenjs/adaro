@@ -51,6 +51,11 @@ describe('express-dustjs', function () {
         });
 
 
+        after(function () {
+            engine.onLoad = undefined;
+        });
+
+
         it('should create a renderer', function () {
             renderer = engine.dust({cache: false});
         });
@@ -95,6 +100,11 @@ describe('express-dustjs', function () {
                 name = path.join(context.settings.views, name + '.' + context.ext);
                 fs.readFile(name, 'utf8', cb);
             };
+        });
+
+
+        after(function () {
+            engine.onLoad = undefined;
         });
 
 
@@ -163,6 +173,11 @@ describe('express-dustjs', function () {
             };
         });
 
+
+        after(function () {
+            engine.onLoad = undefined;
+        });
+
         it('should render a template', function (next) {
             var renderer = engine.dust({cache: false});
             renderer(path.join(process.cwd(), 'fixtures', 'templates', 'master.dust'), context, function (err, data) {
@@ -176,6 +191,10 @@ describe('express-dustjs', function () {
 
 
     describe('helpers', function () {
+
+        after(function () {
+            engine.onLoad = undefined;
+        });
 
         it('should use helpers for templates', function (next) {
             var renderer = engine.dust({
@@ -231,6 +250,11 @@ describe('express-dustjs', function () {
 
 
         beforeEach(function () {
+            engine.onLoad = undefined;
+        });
+
+
+        after(function () {
             engine.onLoad = undefined;
         });
 
@@ -313,6 +337,7 @@ describe('express-dustjs', function () {
 
         after(function () {
             delete context.layout;
+            engine.onLoad = undefined;
         });
 
 
