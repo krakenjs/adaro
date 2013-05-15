@@ -179,6 +179,7 @@ exports.js = function (config) {
 
         var args = [path, loadJS];
         if (onLoad.length === 3) {
+            options.ext = options.ext || 'js';
             args.splice(1, 0, options);
         }
 
@@ -197,6 +198,7 @@ exports.dust = function (config) {
         args = [path, callback];
 
         if (onLoad.length === 3) {
+            options.ext = options.ext || 'dust';
             args.splice(1, 0, options);
         }
 
