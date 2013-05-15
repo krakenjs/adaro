@@ -29,16 +29,6 @@ describe('express-dustjs', function () {
         context.settings = {
             views: path.join(process.cwd(), 'fixtures', 'templates')
         };
-
-        engine.onLoad = function (name, cb) {
-            name = path.join(context.settings.views, name + '.' + context.ext);
-            fs.readFile(name, 'utf8', cb);
-        };
-    });
-
-
-    after(function () {
-        engine.onLoad = undefined;
     });
 
 
@@ -87,7 +77,27 @@ describe('express-dustjs', function () {
             });
         });
 
+        it('should support custom onLoad', function (next) {
+            var invoked = false;
+
+            engine.onLoad = function (name, cb) {
+                invoked = true;
+                name = path.join(context.settings.views, name + '.' + context.ext);
+                fs.readFile(name, 'utf8', cb);
+            };
+
+            renderer = engine.dust({cache: false});
+            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+                assert.ok(!err);
+                assert.isTrue(invoked);
+                assert.strictEqual(data, SUBDIR_RESULT);
+                engine.onLoad = undefined;
+                next();
+            });
+        });
+
     });
+
 
 
     describe('compiled js', function () {
@@ -96,10 +106,6 @@ describe('express-dustjs', function () {
 
         before(function () {
             context.ext = 'js';
-            engine.onLoad = function (name, cb) {
-                name = path.join(context.settings.views, name + '.' + context.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
         });
 
 
@@ -115,7 +121,6 @@ describe('express-dustjs', function () {
 
         it('should render a template with a relative path', function (next) {
             renderer('index.js', context, function (err, data) {
-                err && console.dir(err.message);
                 assert.ok(!err);
                 assert.strictEqual(data, RESULT);
                 next();
@@ -141,7 +146,7 @@ describe('express-dustjs', function () {
         });
 
 
-        it('should use onLoad if available', function (next) {
+        it('support custom onLoad', function (next) {
             var invoked = false;
 
             engine.onLoad = function (name, cb) {

@@ -43,6 +43,24 @@ function loadHelper(helper) {
 }
 
 
+function readFile(name, context, cb) {
+    var views, ext, file;
+
+    views = context.views;
+    if (context.settings && context.settings.views) {
+        views = context.settings.views;
+    }
+
+    ext = context.ext;
+    if (ext[0] !== '.') {
+        ext = '.' + ext;
+    }
+
+    file = path.join(views, name + ext);
+    fs.readFile(file, 'utf8', cb);
+}
+
+
 function createRenderer(config, doRead) {
     var ext, views, nameify;
 
@@ -79,7 +97,7 @@ function createRenderer(config, doRead) {
             };
         }
 
-        if (dust.load.name !== 'cabbage' && typeof(dust.onLoad) === 'function') {
+        if (dust.load.name !== 'cabbage') {
 
             // CABBAGE PATCH - Here comes the fun...
             // In order to provide request context to our `read` method we need to get creative with dust.
@@ -146,6 +164,8 @@ function createRenderer(config, doRead) {
 
 exports.js = function (config) {
     function doRead(path, name, options, callback) {
+        var onLoad = dust.onLoad || readFile;
+
         function loadJS(err, data) {
             if (err) {
                 callback(err);
@@ -158,10 +178,11 @@ exports.js = function (config) {
         }
 
         var args = [path, loadJS];
-        if (dust.onLoad.length === 3) {
+        if (onLoad.length === 3) {
             args.splice(1, 0, options);
         }
-        dust.onLoad.apply(undefined, args);
+
+        onLoad.apply(undefined, args);
     }
 
     return createRenderer(config, doRead);
@@ -170,11 +191,16 @@ exports.js = function (config) {
 
 exports.dust = function (config) {
     function doRead(path, name, options, callback) {
-        var args = [path, callback];
-        if (dust.onLoad.length === 3) {
+        var onLoad, args;
+
+        onLoad = dust.onLoad || readFile;
+        args = [path, callback];
+
+        if (onLoad.length === 3) {
             args.splice(1, 0, options);
         }
-        dust.onLoad.apply(undefined, args);
+
+        onLoad.apply(undefined, args);
     }
 
     return createRenderer(config, doRead);
