@@ -132,7 +132,7 @@ function createRenderer(config, doRead) {
                         return chunk.map(function (chunk) {
                             doRead(file, nameify(file), head, function (err, src) {
                                 if (err) {
-                                    return chunk.setError(err)
+                                    return chunk.setError(err);
                                 }
 
                                 if (typeof src !== 'function') {
@@ -164,7 +164,7 @@ function createRenderer(config, doRead) {
             }
             callback.apply(undefined, arguments);
         });
-    }
+    };
 }
 
 
