@@ -3,6 +3,7 @@
 
 var fs = require('fs'),
     path = require('path'),
+    express = require('express'),
     engine = require('../index'),
     assert = require('chai').assert;
 
@@ -17,51 +18,42 @@ describe('express-dustjs', function () {
     var SUBDIR_RESULT = '<p>howdy doodie</p>';
     var LAYOUT_RESULT = '<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>';
     var ALT_LAYOUT_RESULT = '<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>';
+    var BLOCK_SCOPE_RESULT = '<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:';
 
 
     before(function () {
         // Ensure the test case assumes it's being run from application root.
         // Depending on the test harness this may not be the case, so shim.
         process.chdir(__dirname);
-
-        // Simulate express options
-        context.ext = 'dust';
-        context.settings = {
-            views: path.join(process.cwd(), 'fixtures', 'templates')
-        };
     });
 
 
     describe('dust', function () {
 
-        var renderer;
+        var app, server;
 
-        before(function () {
-            context.ext = 'dust';
-        });
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
 
-
-        after(function () {
-            engine.onLoad = undefined;
-        });
-
-
-        it('should create a renderer', function () {
-            renderer = engine.dust({cache: false});
-        });
-
-
-        it('should render a template with a relative path', function (next) {
-            renderer('index.dust', context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, RESULT);
-                next();
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
             });
+
+            server = app.listen(8000, next);
+        });
+
+        after(function (next) {
+            server.once('close', next);
+            server.close();
         });
 
 
-        it('should render a template with an absolute path', function (next) {
-            renderer(path.join(context.settings.views, 'index.dust'), context, function (err, data) {
+        it('should render a template', function (next) {
+            inject('/index', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, RESULT);
                 next();
@@ -70,24 +62,24 @@ describe('express-dustjs', function () {
 
 
         it('should render a template in a subdirectory', function (next) {
-            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, SUBDIR_RESULT);
                 next();
             });
         });
 
+
         it('should support custom onLoad', function (next) {
             var invoked = false;
 
-            engine.onLoad = function (name, cb) {
+            engine.onLoad = function (name, context, cb) {
                 invoked = true;
                 name = path.join(context.settings.views, name + '.' + context.ext);
                 fs.readFile(name, 'utf8', cb);
             };
 
-            renderer = engine.dust({cache: false});
-            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.isTrue(invoked);
                 assert.strictEqual(data, SUBDIR_RESULT);
@@ -102,34 +94,32 @@ describe('express-dustjs', function () {
 
     describe('compiled js', function () {
 
-        var renderer;
+        var app, server;
 
-        before(function () {
-            context.ext = 'js';
-        });
+        before(function (next) {
+            app = express();
+            app.engine('js', engine.js({ cache: false }));
+            app.set('view engine', 'js');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
 
-
-        after(function () {
-            engine.onLoad = undefined;
-        });
-
-
-        it('should create a renderer', function () {
-            renderer = engine.js({cache: false});
-        });
-
-
-        it('should render a template with a relative path', function (next) {
-            renderer('index.js', context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, RESULT);
-                next();
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
             });
+
+            server = app.listen(8000, next);
         });
 
 
-        it('should render a template with an absolute path', function (next) {
-            renderer(path.join(context.settings.views, 'index.js'), context, function (err, data) {
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+        });
+
+
+
+        it('should render a template', function (next) {
+            inject('/index', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, RESULT);
                 next();
@@ -138,7 +128,7 @@ describe('express-dustjs', function () {
 
 
         it('should render a template in a subdirectory', function (next) {
-            renderer(path.join(context.settings.views, 'inc', 'include.js'), context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, SUBDIR_RESULT);
                 next();
@@ -146,17 +136,16 @@ describe('express-dustjs', function () {
         });
 
 
-        it('support custom onLoad', function (next) {
+        it('should support custom onLoad', function (next) {
             var invoked = false;
 
-            engine.onLoad = function (name, cb) {
+            engine.onLoad = function (name, context, cb) {
                 invoked = true;
                 name = path.join(context.settings.views, name + '.' + context.ext);
                 fs.readFile(name, 'utf8', cb);
             };
 
-            renderer = engine.js({cache: false});
-            renderer(path.join(context.settings.views, 'inc', 'include.js'), context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.isTrue(invoked);
                 assert.strictEqual(data, SUBDIR_RESULT);
@@ -165,27 +154,37 @@ describe('express-dustjs', function () {
             });
         });
 
+
     });
 
 
     describe('partials', function () {
 
-        before(function () {
-            context.ext = 'dust';
-            engine.onLoad = function (name, cb) {
-                name = path.join(context.settings.views, name + '.' + context.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
+        var app, server;
+
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
+            });
+
+            server = app.listen(8000, next);
         });
 
 
-        after(function () {
-            engine.onLoad = undefined;
+        after(function (next) {
+            server.once('close', next);
+            server.close();
         });
+
 
         it('should render a template', function (next) {
-            var renderer = engine.dust({cache: false});
-            renderer(path.join(process.cwd(), 'fixtures', 'templates', 'master.dust'), context, function (err, data) {
+            inject('/master', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, PARTIAL_RESULT);
                 next();
@@ -197,24 +196,32 @@ describe('express-dustjs', function () {
 
     describe('helpers', function () {
 
-        after(function () {
-            engine.onLoad = undefined;
-        });
+        var app, server;
 
-        it('should use helpers for templates', function (next) {
-            var renderer = engine.dust({
-                helpers: ['dustjs-helpers'],
-                cache: false
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
+            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers'] }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
             });
 
-            engine.onLoad = function (name, cb) {
-                name = path.join(context.settings.views, name + '.' + context.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
+            server = app.listen(8000, next);
+        });
 
-            context.ext = 'dust';
 
-            renderer(path.join(process.cwd(), 'fixtures', 'templates', 'helper.dust'), context, function (err, data) {
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+        });
+
+
+        it('should use helpers for templates', function (next) {
+            inject('/helper', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, HELPER_RESULT);
                 next();
@@ -223,21 +230,12 @@ describe('express-dustjs', function () {
 
 
         it('should use helpers for precompiled js', function (next) {
-            var renderer = engine.js({
-                helpers: ['dustjs-helpers'],
-                cache: false
-            });
+            app.set('view engine', 'js');
 
-            engine.onLoad = function (name, cb) {
-                name = path.join(context.settings.views, name + '.' + context.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            context.ext = 'js';
-
-            renderer(path.join(process.cwd(), 'fixtures', 'templates', 'helper.js'), context, function (err, data) {
+            inject('/helper', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, HELPER_RESULT);
+                app.set('view engine', 'dust');
                 next();
             });
         });
@@ -245,56 +243,63 @@ describe('express-dustjs', function () {
     });
 
 
-    describe('read API', function () {
+    describe('onLoad API', function () {
 
-        var renderer;
+        var app, server;
 
-        before(function () {
-            context.ext = 'dust';
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
+            });
+
+            server = app.listen(8000, next);
         });
 
 
-        beforeEach(function () {
+        after(function (next) {
             engine.onLoad = undefined;
+            server.once('close', next);
+            server.close();
         });
 
 
-        after(function () {
-            engine.onLoad = undefined;
-        });
+        it('should support the default onLoad handler', function (next) {
+            var invoked = false;
 
-
-        it('should use onLoad options if available', function (next) {
-            var invoked = undefined;
-
-            renderer = engine.dust({cache: false});
-            engine.onLoad = function (name, options, cb) {
-                invoked = options;
-                name = path.join(context.settings.views, name + '.' + options.ext);
+            engine.onLoad = function (name, cb) {
+                invoked = true;
+                name = path.join(process.cwd(), 'fixtures', 'templates', 'inc', 'include.dust');
                 fs.readFile(name, 'utf8', cb);
             };
 
-            renderer(path.join(context.settings.views, 'inc', 'include.dust'), context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
-                assert.isObject(invoked);
                 assert.strictEqual(data, SUBDIR_RESULT);
+                assert.ok(invoked);
+                app.set('view engine', 'dust');
                 next();
             });
         });
 
 
-        it('should use a custom dust read handler with partials', function (next) {
+        it('should support passing context to the onLoad hanlder', function (next) {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
-            renderer = engine.dust({ cache: false });
             engine.onLoad = function (name, options, callback) {
-                name = path.join(context.settings.views, name + '.' + options.ext);
+                name = path.join(options.settings.views, name + '.' + options.ext);
                 templates.push(name);
                 fs.readFile(name, 'utf8', callback);
             };
 
-            renderer(dustFile, context, function (err, data) {
+            inject('/master', function (err, data) {
+                err && console.log(err);
                 assert.ok(!err);
                 assert.strictEqual(data, PARTIAL_RESULT);
                 assert.strictEqual(templates.length, 2);
@@ -303,52 +308,40 @@ describe('express-dustjs', function () {
             });
         });
 
-
-        it('should provide context to custom read handler', function (next) {
-            var templates = [];
-            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
-
-            renderer = engine.dust({ cache: false });
-            engine.onLoad = function (view, options, callback) {
-                view = path.join(options.settings.views, 'en_US', view + '.' + options.ext);
-                templates.push(view);
-                fs.readFile(view, 'utf8', callback);
-            };
-
-            renderer(dustFile, context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, PARTIAL_RESULT);
-                assert.strictEqual(templates.length, 2);
-                next();
-            });
-        });
-
-
     });
 
 
     describe('layout', function () {
 
-        var renderer;
+        var app, server;
 
-        before(function () {
-            context.ext = 'dust';
-            engine.onLoad = function (view, options, callback) {
-                view = path.join(options.settings.views, view + '.' + options.ext);
-                fs.readFile(view, 'utf8', callback);
-            };
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false, layout: 'layouts/master' }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                var model = { title: 'Hello, world!' };
+                if (req.query.layout) {
+                    model.layout = (req.query.layout === 'false') ? false : req.query.layout;
+                }
+                res.render(req.path.substr(1), model);
+            });
+
+            server = app.listen(8000, next);
         });
 
 
-        after(function () {
-            delete context.layout;
-            engine.onLoad = undefined;
+        after(function (next) {
+            server.once('close', next);
+            server.close();
         });
 
 
         it('should support a global layout', function (next) {
-            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
-            renderer('inc/include.dust', context, function (err, data) {
+            inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, LAYOUT_RESULT);
                 next();
@@ -357,10 +350,7 @@ describe('express-dustjs', function () {
 
 
         it('should allow local layouts', function (next) {
-            context.layout = 'layouts/altmaster';
-
-            renderer = engine.dust({ cache: false });
-            renderer('inc/include.dust', context, function (err, data) {
+            inject('/inc/include?layout=layouts/altmaster', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, ALT_LAYOUT_RESULT);
                 next();
@@ -368,40 +358,73 @@ describe('express-dustjs', function () {
         });
 
 
-        it('should override global with local layouts', function (next) {
-            context.layout = 'layouts/altmaster';
-
-            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
-
-            // First test the override
-            renderer('inc/include.dust', context, function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, ALT_LAYOUT_RESULT);
-
-                delete context.layout;
-
-                // Then make sure it goes back to global value correctly
-                renderer('inc/include.dust', context, function (err, data) {
-                    assert.ok(!err);
-                    assert.strictEqual(data, LAYOUT_RESULT);
-                    next();
-                });
-            });
-        });
-
-
         it('should allow layout to be disabled', function (next) {
-            context.layout = false;
-
-            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
-            renderer('inc/include.dust', context, function (err, data) {
+            inject('/inc/include?layout=false', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, SUBDIR_RESULT);
                 next();
             });
         });
 
+    });
+
+
+    describe('block scope', function () {
+
+        var app, server;
+
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: false }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { emoji: [':neckbeard:', ':poop:'] });
+            });
+
+            server = app.listen(8000, next);
+        });
+
+
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+        });
+
+        it('should function without error', function (next) {
+            inject('/iterator', function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, BLOCK_SCOPE_RESULT);
+                next();
+            });
+        });
 
     });
 
+
 });
+
+
+
+function inject(path, callback) {
+    var req = require('http').request({ method: 'GET', port: 8000, path: path }, function (res) {
+        var data = [];
+
+        res.on('data', function (chunk) {
+            data.push(chunk)
+        });
+
+        res.on('end', function () {
+            var body = Buffer.concat(data).toString('utf8');
+            if (res.statusCode !== 200) {
+                callback(new Error(body));
+                return;
+            }
+            callback(null, body);
+        });
+    });
+    req.on('error', callback);
+    req.end();
+}

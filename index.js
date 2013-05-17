@@ -51,7 +51,7 @@ function readFile(name, context, cb) {
         views = context.settings.views;
     }
 
-    ext = context.ext;
+    ext = context.ext || path.extname(name);
     if (ext[0] !== '.') {
         ext = '.' + ext;
     }
@@ -73,6 +73,13 @@ function createRenderer(config, doRead) {
     views = null;
     nameify = null;
 
+    function ascend(context) {
+        context = context.stack;
+        while (context.tail) {
+            context = context.tail;
+        }
+        return context.head
+    }
 
     return function (file, options, callback) {
         var name, layout;
@@ -104,7 +111,7 @@ function createRenderer(config, doRead) {
             // We don't to overwrite load, but we do want to use its conventions against it.
             dust.__cabbage__ = dust.load;
             dust.load = function cabbage(name, chunk, context) {
-                var head = context.stack.head;
+                var head = ascend(context);
 
                 // Only use patch for express rendering (existence of `views` or `settings.views`)
                 if (!(head.views || (head.settings && head.settings.views))) {
@@ -123,8 +130,7 @@ function createRenderer(config, doRead) {
 
                         // Emulate what dust does when onLoad is called.
                         return chunk.map(function (chunk) {
-                            // TODO: Hoping context.current() supports necessary use cases.
-                            doRead(file, nameify(file), context.current(), function (err, src) {
+                            doRead(file, nameify(file), head, function (err, src) {
                                 if (err) {
                                     return chunk.setError(err)
                                 }
