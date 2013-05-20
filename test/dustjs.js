@@ -5,6 +5,7 @@ var fs = require('fs'),
     path = require('path'),
     express = require('express'),
     engine = require('../index'),
+    dust = require('dustjs-linkedin'),
     assert = require('chai').assert;
 
 
@@ -19,6 +20,7 @@ describe('express-dustjs', function () {
     var LAYOUT_RESULT = '<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>';
     var ALT_LAYOUT_RESULT = '<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>';
     var BLOCK_SCOPE_RESULT = '<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:';
+    var MAKE_BASE_RESULT = '<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>';
 
 
     before(function () {
@@ -75,7 +77,7 @@ describe('express-dustjs', function () {
 
             engine.onLoad = function (name, context, cb) {
                 invoked = true;
-                name = path.join(context.settings.views, name + '.' + context.ext);
+                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
                 fs.readFile(name, 'utf8', cb);
             };
 
@@ -141,7 +143,7 @@ describe('express-dustjs', function () {
 
             engine.onLoad = function (name, context, cb) {
                 invoked = true;
-                name = path.join(context.settings.views, name + '.' + context.ext);
+                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
                 fs.readFile(name, 'utf8', cb);
             };
 
@@ -288,12 +290,12 @@ describe('express-dustjs', function () {
         });
 
 
-        it('should support passing context to the onLoad hanlder', function (next) {
+        it('should support passing context to the onLoad handler', function (next) {
             var templates = [];
             var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
 
-            engine.onLoad = function (name, options, callback) {
-                name = path.join(options.settings.views, name + '.' + options.ext);
+            engine.onLoad = function (name, context, callback) {
+                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
                 templates.push(name);
                 fs.readFile(name, 'utf8', callback);
             };
@@ -403,6 +405,69 @@ describe('express-dustjs', function () {
 
     });
 
+
+    describe('support monkey-patched dust', function () {
+
+        var app, server, model, render;
+
+        model = {
+            states: [
+                {
+                    name: 'California',
+                    cities: [
+                        { name: 'San Diego' },
+                        { name: 'San Francisco' },
+                        { name: 'San Jose' }
+                    ]
+                },
+                {
+                    name: 'Virginia',
+                    cities: [
+                        { name: 'Fairfax' },
+                        { name: 'Gainsville' },
+                        { name: 'Manassass' }
+                    ]
+                }
+            ]
+        };
+
+        before(function (next) {
+            // Monkey-patch
+            render = dust.render;
+            dust.render = function (name, model, callback) {
+                var context;
+                context = dust.makeBase(model.global || {}).push(model);
+                render(name, context, callback);
+            };
+
+            app = express();
+            app.engine('dust', engine.dust({ cache: false }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), model);
+            });
+
+            server = app.listen(8000, next);
+        });
+
+
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+            dust.render = render;
+        });
+
+        it('should function without error', function (next) {
+            inject('/nested/index', function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, MAKE_BASE_RESULT);
+                next();
+            });
+        });
+    });
 
 });
 

@@ -1,0 +1,7 @@
+{@useContent map="index=app.index"}
+<h1>{@content $key="index:greeting"/}</h1>
+{/useContent}
+
+{#states}
+{>"nested/partial1"/}
+{/states}

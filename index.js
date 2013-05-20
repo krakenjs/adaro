@@ -44,14 +44,17 @@ function loadHelper(helper) {
 
 
 function readFile(name, context, cb) {
-    var views, ext, file;
+    var views, settings, ext, file;
 
-    views = context.views;
-    if (context.settings && context.settings.views) {
-        views = context.settings.views;
+    views = context.global.views;
+    settings = context.global.settings;
+
+    if (settings && settings.views) {
+        views = settings.views;
     }
 
-    ext = context.ext || path.extname(name);
+    ext = context.global.ext || path.extname(name);
+
     if (ext[0] !== '.') {
         ext = '.' + ext;
     }
@@ -73,21 +76,12 @@ function createRenderer(config, doRead) {
     views = null;
     nameify = null;
 
-    function ascend(context) {
-        context = context.stack;
-        while (context.tail) {
-            context = context.tail;
-        }
-        return context.head
-    }
-
     return function (file, options, callback) {
         var name, layout;
 
         if (!nameify) {
             ext = path.extname(file);
             views = '.';
-
 
             if (options) {
                 ext   = (options.ext && ('.' + options.ext)) || ext;
@@ -111,42 +105,45 @@ function createRenderer(config, doRead) {
             // We don't to overwrite load, but we do want to use its conventions against it.
             dust.__cabbage__ = dust.load;
             dust.load = function cabbage(name, chunk, context) {
-                var head = ascend(context);
+                var viewName, views, settings;
+
+                viewName = name;
+                views = context.global.views;
+                settings = context.global.settings;
 
                 // Only use patch for express rendering (existence of `views` or `settings.views`)
-                if (!(head.views || (head.settings && head.settings.views))) {
-                    return dust.__cabbage__.apply(undefined, arguments);
+                if (views || (settings && settings.views)) {
+                    // We exploit the cache to hook into load/onLoad behavior. Dust first checks the cache before
+                    // trying to load (using dust.cache[name]), so if we add a custom getter for a known key we can
+                    // get dust to call our code and replace its behavior without changing its internals.
+                    viewName = MY_SPECIAL_FRIEND;
+                    dust.cache.__defineGetter__(viewName, function () {
+                        // Remove the getter immediately (must delete as it's a getter. setting it to undefined will fail.)
+                        delete dust.cache[viewName];
+
+                        return function (chunk, context) {
+                            var file = name;
+
+                            // Emulate what dust does when onLoad is called.
+                            return chunk.map(function (chunk) {
+                                doRead(file, nameify(file), context, function (err, src) {
+                                    if (err) {
+                                        return chunk.setError(err);
+                                    }
+
+                                    if (typeof src !== 'function') {
+                                        src = dust.loadSource(dust.compile(src));
+                                    }
+
+                                    dust.cache[name] = undefined;
+                                    src(chunk, context).end();
+                                });
+                            });
+                        }
+                    });
                 }
 
-                // We exploit the cache to hook into load/onLoad behavior. Dust first checks the cache before
-                // trying to load (using dust.cache[name]), so if we add a custom getter for a known key we can
-                // get dust to call our code and replace its behavior without changing its internals.
-                dust.cache.__defineGetter__(MY_SPECIAL_FRIEND, function () {
-                    // Remove the getter immediately (must delete as it's a getter. setting it to undefined will fail.)
-                    delete dust.cache[MY_SPECIAL_FRIEND];
-
-                    return function (chunk, context) {
-                        var file = name;
-
-                        // Emulate what dust does when onLoad is called.
-                        return chunk.map(function (chunk) {
-                            doRead(file, nameify(file), head, function (err, src) {
-                                if (err) {
-                                    return chunk.setError(err);
-                                }
-
-                                if (typeof src !== 'function') {
-                                    src = dust.loadSource(dust.compile(src));
-                                }
-
-                                dust.cache[name] = undefined;
-                                src(chunk, context).end();
-                            });
-                        });
-                    }
-                });
-
-                return dust.__cabbage__(MY_SPECIAL_FRIEND, chunk, context);
+                return dust.__cabbage__(viewName, chunk, context);
             };
         }
 
@@ -158,7 +155,7 @@ function createRenderer(config, doRead) {
             name = layout;
         }
 
-        dust.render(name, options, function () {
+        dust.render(name, dust.makeBase(options), function () {
             if (!config.cache) {
                 dust.cache = {};
             }
@@ -169,7 +166,7 @@ function createRenderer(config, doRead) {
 
 
 exports.js = function (config) {
-    function doRead(path, name, options, callback) {
+    function doRead(path, name, context, callback) {
         var onLoad = dust.onLoad || readFile;
 
         function loadJS(err, data) {
@@ -185,8 +182,8 @@ exports.js = function (config) {
 
         var args = [path, loadJS];
         if (onLoad.length === 3) {
-            options.ext = options.ext || 'js';
-            args.splice(1, 0, options);
+            context.global.ext = context.global.ext || 'js';
+            args.splice(1, 0, context);
         }
 
         onLoad.apply(undefined, args);
@@ -197,15 +194,15 @@ exports.js = function (config) {
 
 
 exports.dust = function (config) {
-    function doRead(path, name, options, callback) {
+    function doRead(path, name, context, callback) {
         var onLoad, args;
 
         onLoad = dust.onLoad || readFile;
         args = [path, callback];
 
         if (onLoad.length === 3) {
-            options.ext = options.ext || 'dust';
-            args.splice(1, 0, options);
+            context.global.ext = context.global.ext || 'dust';
+            args.splice(1, 0, context);
         }
 
         onLoad.apply(undefined, args);
