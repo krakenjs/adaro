@@ -20,7 +20,7 @@ describe('express-dustjs', function () {
     var LAYOUT_RESULT = '<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>';
     var ALT_LAYOUT_RESULT = '<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>';
     var BLOCK_SCOPE_RESULT = '<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:';
-    var MAKE_BASE_RESULT = '<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>';
+    var MAKE_BASE_RESULT = 'CampbellCA95008<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>';
 
 
     before(function () {
@@ -411,6 +411,11 @@ describe('express-dustjs', function () {
         var app, server, model, render;
 
         model = {
+            address: {
+                city: 'Campbell',
+                state: 'CA',
+                zip: '95008'
+            },
             states: [
                 {
                     name: 'California',
@@ -434,11 +439,6 @@ describe('express-dustjs', function () {
         before(function (next) {
             // Monkey-patch
             render = dust.render;
-            dust.render = function (name, model, callback) {
-                var context;
-                context = dust.makeBase(model.global || {}).push(model);
-                render(name, context, callback);
-            };
 
             app = express();
             app.engine('dust', engine.dust({ cache: false }));
@@ -459,6 +459,7 @@ describe('express-dustjs', function () {
             server.close();
             dust.render = render;
         });
+
 
         it('should function without error', function (next) {
             inject('/nested/index', function (err, data) {

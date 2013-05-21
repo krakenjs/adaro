@@ -155,7 +155,16 @@ function createRenderer(config, doRead) {
             name = layout;
         }
 
-        dust.render(name, dust.makeBase(options), function () {
+        // TODO: Make this cleaner.
+        // FIXME
+        var base = dust.makeBase({ views: options.views, settings: options.settings, ext: options.ext });
+        base = base.push(options);
+
+        delete options.views;
+        delete options.settings;
+        delete options.ext;
+
+        dust.render(name, base, function () {
             if (!config.cache) {
                 dust.cache = {};
             }

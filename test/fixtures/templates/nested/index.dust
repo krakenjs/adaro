@@ -2,6 +2,10 @@
 <h1>{@content $key="index:greeting"/}</h1>
 {/useContent}
 
+{address.city}
+{address.state}
+{address.zip}
+
 {#states}
 {>"nested/partial1"/}
 {/states}
