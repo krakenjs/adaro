@@ -48,9 +48,15 @@ describe('express-dustjs', function () {
             server = app.listen(8000, next);
         });
 
+
         after(function (next) {
             server.once('close', next);
             server.close();
+        });
+
+
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
         });
 
 
@@ -119,6 +125,10 @@ describe('express-dustjs', function () {
         });
 
 
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
+        });
+
 
         it('should render a template', function (next) {
             inject('/index', function (err, data) {
@@ -185,6 +195,11 @@ describe('express-dustjs', function () {
         });
 
 
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
+        });
+
+
         it('should render a template', function (next) {
             inject('/master', function (err, data) {
                 assert.ok(!err);
@@ -219,6 +234,11 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+        });
+
+
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
         });
 
 
@@ -268,6 +288,11 @@ describe('express-dustjs', function () {
             engine.onLoad = undefined;
             server.once('close', next);
             server.close();
+        });
+
+
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
         });
 
 
@@ -342,6 +367,11 @@ describe('express-dustjs', function () {
         });
 
 
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
+        });
+
+
         it('should support a global layout', function (next) {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
@@ -394,6 +424,12 @@ describe('express-dustjs', function () {
             server.once('close', next);
             server.close();
         });
+
+
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
+        });
+
 
         it('should function without error', function (next) {
             inject('/iterator', function (err, data) {
@@ -461,6 +497,11 @@ describe('express-dustjs', function () {
         });
 
 
+        afterEach(function () {
+            assert.strictEqual(Object.keys(dust.cache).length, 0);
+        });
+
+
         it('should function without error', function (next) {
             inject('/nested/index', function (err, data) {
                 assert.ok(!err);
@@ -468,6 +509,107 @@ describe('express-dustjs', function () {
                 next();
             });
         });
+    });
+
+
+    describe('dust cache', function () {
+        var app, server;
+
+        before(function (next) {
+            app = express();
+            app.engine('dust', engine.dust({ cache: true }));
+            app.set('view engine', 'dust');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
+            });
+
+            server = app.listen(8000, next);
+        });
+
+
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+        });
+
+
+        afterEach(function () {
+            dust.cache = {};
+        });
+
+
+        it('should cache templates if enabled', function (next) {
+            assert.isUndefined(dust.cache.index);
+
+            inject('/index', function (err, data) {
+                assert.isFunction(dust.cache.index);
+                assert.ok(!err);
+                assert.strictEqual(data, RESULT);
+
+                // This request should pull from cache
+                inject('/index', function (err, data) {
+                    assert.isFunction(dust.cache.index);
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+                    next();
+                });
+            });
+        });
+
+    });
+
+
+    describe('js cache', function () {
+        var app, server;
+
+
+        before(function (next) {
+            app = express();
+            app.engine('js', engine.js({ cache: true }));
+            app.set('view engine', 'js');
+            app.set('view cache', false);
+            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+            app.get('/*', function (req, res) {
+                res.render(req.path.substr(1), { title: 'Hello, world!' });
+            });
+
+            server = app.listen(8000, next);
+        });
+
+
+        after(function (next) {
+            server.once('close', next);
+            server.close();
+        });
+
+
+        afterEach(function () {
+            dust.cache = {};
+        });
+
+
+        it('should cache templates if enabled', function (next) {
+            assert.isUndefined(dust.cache.index);
+
+            inject('/index', function (err, data) {
+                assert.isFunction(dust.cache.index);
+                assert.ok(!err);
+                assert.strictEqual(data, RESULT);
+
+                // This request should pull from cache
+                inject('/index', function (err, data) {
+                    assert.isFunction(dust.cache.index);
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+                    next();
+                });
+            });
+        });
+
     });
 
 });

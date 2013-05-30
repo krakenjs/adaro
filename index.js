@@ -105,42 +105,52 @@ function createRenderer(config, doRead) {
             // We don't to overwrite load, but we do want to use its conventions against it.
             dust.__cabbage__ = dust.load;
             dust.load = function cabbage(name, chunk, context) {
-                var viewName, views, settings;
+                var cached, viewName, views, settings;
 
+                cached = config.cache && !!dust.cache[name];
                 viewName = name;
-                views = context.global.views;
-                settings = context.global.settings;
 
-                // Only use patch for express rendering (existence of `views` or `settings.views`)
-                if (views || (settings && settings.views)) {
-                    // We exploit the cache to hook into load/onLoad behavior. Dust first checks the cache before
-                    // trying to load (using dust.cache[name]), so if we add a custom getter for a known key we can
-                    // get dust to call our code and replace its behavior without changing its internals.
-                    viewName = MY_SPECIAL_FRIEND;
-                    dust.cache.__defineGetter__(viewName, function () {
-                        // Remove the getter immediately (must delete as it's a getter. setting it to undefined will fail.)
-                        delete dust.cache[viewName];
+                if (!cached) {
 
-                        return function (chunk, context) {
-                            var file = name;
+                    views = context.global.views;
+                    settings = context.global.settings;
 
-                            // Emulate what dust does when onLoad is called.
-                            return chunk.map(function (chunk) {
-                                doRead(file, nameify(file), context, function (err, src) {
-                                    if (err) {
-                                        return chunk.setError(err);
-                                    }
+                    // Only use patch for express rendering (existence of `views` or `settings.views`)
+                    if (views || (settings && settings.views)) {
+                        // We exploit the cache to hook into load/onLoad behavior. Dust first checks the cache before
+                        // trying to load (using dust.cache[name]), so if we add a custom getter for a known key we can
+                        // get dust to call our code and replace its behavior without changing its internals.
+                        viewName = MY_SPECIAL_FRIEND;
+                        dust.cache.__defineGetter__(viewName, function () {
+                            // Remove the getter immediately (must delete as it's a getter. setting it to undefined will fail.)
+                            delete dust.cache[viewName];
 
-                                    if (typeof src !== 'function') {
-                                        src = dust.loadSource(dust.compile(src));
-                                    }
+                            return function (chunk, context) {
+                                var file = name;
 
-                                    dust.cache[name] = undefined;
-                                    src(chunk, context).end();
+                                // Emulate what dust does when onLoad is called.
+                                return chunk.map(function (chunk) {
+                                    doRead(file, nameify(file), context, function (err, src) {
+                                        if (err) {
+                                            chunk.setError(err);
+                                            return;
+                                        }
+
+                                        if (typeof src !== 'function') {
+                                            src = dust.loadSource(dust.compile(src, name));
+                                        }
+
+                                        if (!config.cache) {
+                                            delete dust.cache[name];
+                                        }
+
+                                        src(chunk, context).end();
+                                    });
                                 });
-                            });
-                        }
-                    });
+                            }
+                        });
+                    }
+
                 }
 
                 return dust.__cabbage__(viewName, chunk, context);
@@ -176,7 +186,7 @@ function createRenderer(config, doRead) {
 
 exports.js = function (config) {
     function doRead(path, name, context, callback) {
-        var onLoad = dust.onLoad || readFile;
+        var onLoad, args;
 
         function loadJS(err, data) {
             if (err) {
@@ -189,7 +199,9 @@ exports.js = function (config) {
             callback(null, dust.cache[name]);
         }
 
-        var args = [path, loadJS];
+        onLoad = dust.onLoad || readFile;
+        args = [path, loadJS];
+
         if (onLoad.length === 3) {
             context.global.ext = context.global.ext || 'js';
             args.splice(1, 0, context);
