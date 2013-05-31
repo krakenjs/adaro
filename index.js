@@ -195,7 +195,7 @@ exports.js = function (config) {
             }
             // Put directly into cache so it's available when dust.onLoad returns.
             // This call is synchronous and the cache entry will get purged immediately.
-            dust.cache[name] = (typeof data === 'function') ? data : dust.loadSource(data);
+            dust.loadSource(data);
             callback(null, dust.cache[name]);
         }
 
