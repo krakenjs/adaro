@@ -65,38 +65,25 @@ function readFile(name, context, cb) {
 
 
 function createRenderer(config, doRead) {
-    var ext, views, nameify;
+    var nameify;
 
     config = config || {};
     config.helpers && config.helpers.forEach(loadHelper);
     config.cache = (config.cache === undefined) ? true : !!config.cache;
 
     dust.load = (typeof dust.__cabbage__ === 'function') ? dust.__cabbage__ : dust.load;
-    ext = null;
-    views = null;
-    nameify = null;
+
+    nameify = function (file, views, ext) {
+        var name = file;
+        name = name.replace(views, ''); // Remove absolute path (if necessary)
+        name = name.replace(ext, '');   // Remove file extension
+        name = name.replace(LEADING_SEPARATOR, ''); // Remove leading slash (platform-dependent, if necessary)
+        name = name.replace(path.sep, '/'); // Ensure path separators in name are all forward-slashes.
+        return name;
+    };
 
     return function (file, options, callback) {
-        var name, layout;
-
-        if (!nameify) {
-            ext = path.extname(file);
-            views = '.';
-
-            if (options) {
-                ext   = (options.ext && ('.' + options.ext)) || ext;
-                views = options.views || (options.settings && options.settings.views) || views;
-            }
-
-            nameify = function (file) {
-                var name = file;
-                name = name.replace(views, ''); // Remove absolute path (if necessary)
-                name = name.replace(ext, '');   // Remove file extension
-                name = name.replace(LEADING_SEPARATOR, ''); // Remove leading slash (platform-dependent, if necessary)
-                name = name.replace(path.sep, '/'); // Ensure path separators in name are all forward-slashes.
-                return name;
-            };
-        }
+        var extension, viewDir, name, layout, base;
 
         if (dust.load.name !== 'cabbage') {
 
@@ -157,9 +144,19 @@ function createRenderer(config, doRead) {
             };
         }
 
+        extension = path.extname(file);
+        viewDir = '.';
+        layout = undefined;
+
+        if (options) {
+            extension = (options.ext && ('.' + options.ext)) || extension;
+            viewDir = options.views || (options.settings && options.settings.views) || viewDir;
+            layout = (options.layout === false) ? undefined : (options.layout || config.layout);
+        }
+
+        name = nameify(file, viewDir, extension);
+
         // Simple layout support. An explicit 'layout: false' disables, otherwise resolve.
-        name = nameify(file);
-        layout = (options.layout === false) ? undefined : (options.layout || config.layout);
         if (typeof layout === 'string') {
             options._main = name;
             name = layout;
@@ -167,7 +164,7 @@ function createRenderer(config, doRead) {
 
         // TODO: Make this cleaner.
         // FIXME
-        var base = dust.makeBase({ views: options.views, settings: options.settings, ext: options.ext });
+        base = dust.makeBase({ views: options.views, settings: options.settings, ext: options.ext });
         base = base.push(options);
 
         delete options.views;
