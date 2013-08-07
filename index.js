@@ -3,44 +3,12 @@
 // XXX - 'dustjs-helpers' has a side-effect of loading and returning dustjs-linkedin
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
-    dust = requireAny('dustjs-helpers', 'dustjs-linkedin');
+    reqwire = require('./reqwire'),
+    dust = reqwire('dustjs-helpers', 'dustjs-linkedin');
 
 
 var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
 var MY_SPECIAL_FRIEND = '☃';
-
-
-function requireAny(/*modules*/) {
-    var result, failed;
-
-    result = undefined;
-    failed = [];
-
-    Array.prototype.slice.call(arguments).some(function (moduleName) {
-        try {
-            result = require(moduleName);
-        } catch (err) {
-            // noop
-            failed.push(moduleName);
-        }
-        return !!result;
-    });
-
-    assert.ok(failed.length !== arguments.length, 'Required module(s) not found. Please install one of the following: ' + failed.join(', '));
-    return result;
-}
-
-
-function loadHelper(helper) {
-    // Should be a dependency of the parent app
-    var fn = require(helper);
-    if (typeof fn === 'function' && fn.length === 1) {
-        // Handle API that returns an initialization function. Otherwise, assume
-        // it conforms to the same pattern as dustjs-helpers.
-        fn(dust);
-    }
-}
 
 
 function readFile(name, context, cb) {
@@ -65,11 +33,20 @@ function readFile(name, context, cb) {
 
 
 function createRenderer(config, doRead) {
-    var nameify;
+    var nameify, cache;
 
     config = config || {};
-    config.helpers && config.helpers.forEach(loadHelper);
-    config.cache = (config.cache === undefined) ? true : !!config.cache;
+
+    if (Array.isArray(config.helpers)) {
+        config.helpers.forEach(function (name) {
+            reqwire.init(name, dust);
+        });
+    }
+
+    cache = true;
+    if (config.cache !== undefined) {
+        cache = !!config.cache;
+    }
 
     dust.load = (typeof dust.__cabbage__ === 'function') ? dust.__cabbage__ : dust.load;
 
@@ -94,7 +71,7 @@ function createRenderer(config, doRead) {
             dust.load = function cabbage(name, chunk, context) {
                 var cached, viewName, views, settings;
 
-                cached = config.cache && !!dust.cache[name];
+                cached = cache && !!dust.cache[name];
                 viewName = name;
 
                 if (!cached) {
@@ -127,7 +104,7 @@ function createRenderer(config, doRead) {
                                             src = dust.loadSource(dust.compile(src, name));
                                         }
 
-                                        if (!config.cache) {
+                                        if (!cache) {
                                             delete dust.cache[name];
                                         }
 
@@ -172,7 +149,7 @@ function createRenderer(config, doRead) {
         delete options.ext;
 
         dust.render(name, base, function () {
-            if (!config.cache) {
+            if (!cache) {
                 dust.cache = {};
             }
             callback.apply(undefined, arguments);

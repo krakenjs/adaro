@@ -11,6 +11,7 @@ var fs = require('fs'),
 
 describe('express-dustjs', function () {
 
+    var dir = process.cwd();
     var context = { title: 'Hello, world!' };
 
     var RESULT = '<!DOCTYPE html><html lang="en"><head><title>Hello, world!</title></head><body><h1>node template test</h1></body></html>';
@@ -27,6 +28,10 @@ describe('express-dustjs', function () {
         // Ensure the test case assumes it's being run from application root.
         // Depending on the test harness this may not be the case, so shim.
         process.chdir(__dirname);
+    });
+
+    after(function () {
+        process.chdir(dir);
     });
 
 
@@ -217,8 +222,8 @@ describe('express-dustjs', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
-            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers'] }));
+            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', '../../../test/fixtures/helpers/node', '../../../test/fixtures/helpers/browser'] }));
+            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', '../../../test/fixtures/helpers/node', '../../../test/fixtures/helpers/browser'] }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -239,6 +244,18 @@ describe('express-dustjs', function () {
 
         afterEach(function () {
             assert.strictEqual(Object.keys(dust.cache).length, 0);
+        })
+
+
+        it('should use helper modules', function () {
+            assert.isFunction(dust.helpers.sep);
+            assert.isFunction(dust.helpers.idx);
+        });
+
+
+        it('should use arbitrary helpers', function () {
+            assert.isFunction(dust.helpers.node);
+            assert.isFunction(dust.helpers.browser);
         });
 
 
