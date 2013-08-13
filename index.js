@@ -134,7 +134,7 @@ function createRenderer(config, doRead) {
                                         src(chunk, context).end();
                                     });
                                 });
-                            }
+                            };
                         });
                     }
 
