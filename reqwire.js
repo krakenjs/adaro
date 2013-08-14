@@ -32,7 +32,7 @@ exports.init = function (/*name, args...*/) {
     name = args.shift();
 
     if (~name.indexOf('/')) {
-        name = path.join(path.dirname(require.main.filename), name);
+        name = path.join(process.cwd(), name);
     }
 
     fn = reqwire(name); // Should be a dependency of the parent app

@@ -51,14 +51,14 @@ describe('reqwire', function () {
 
         it('should load a js file relative to app root', function () {
             // In this case mocha is the app, so app root is buried, unfortunately.
-            reqwire.init('../../../test/fixtures/reqwire/module');
+            reqwire.init('./test/fixtures/reqwire/module');
         });
 
 
         it('should load and init a file relative to app root', function () {
             // In this case mocha is the app, so app root is buried, unfortunately.
             var decoratee = {};
-            reqwire.init('../../../test/fixtures/reqwire/init', decoratee);
+            reqwire.init('./test/fixtures/reqwire/init', decoratee);
             assert.strictEqual(decoratee.decorated, true);
         });
 
@@ -66,7 +66,7 @@ describe('reqwire', function () {
         it('should load and init a file with multiple args', function () {
             // In this case mocha is the app, so app root is buried, unfortunately.
             var decoratee = {};
-            reqwire.init('../../../test/fixtures/reqwire/init', decoratee, 'moo');
+            reqwire.init('./test/fixtures/reqwire/init', decoratee, 'moo');
             assert.strictEqual(decoratee.decorated, 'moo');
         });
 
