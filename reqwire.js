@@ -3,8 +3,8 @@
 var assert = require('assert'),
     path = require('path');
 
-
-var reqwire = exports = module.exports = function (/*modules*/) {
+var reqwire;
+exports = reqwire = module.exports = function (/*modules*/) {
     var result, failed;
 
     result = undefined;

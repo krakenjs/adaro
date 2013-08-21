@@ -244,7 +244,7 @@ describe('express-dustjs', function () {
 
         afterEach(function () {
             assert.strictEqual(Object.keys(dust.cache).length, 0);
-        })
+        });
 
 
         it('should use helper modules', function () {
@@ -638,7 +638,7 @@ function inject(path, callback) {
         var data = [];
 
         res.on('data', function (chunk) {
-            data.push(chunk)
+            data.push(chunk);
         });
 
         res.on('end', function () {
