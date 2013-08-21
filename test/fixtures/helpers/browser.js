@@ -1,3 +1,7 @@
+if (typeof dust !== 'object') {
+    dust = undefined;
+}
+
 (function (dust) {
     'use strict';
 
