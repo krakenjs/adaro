@@ -8,6 +8,7 @@ var fs = require('fs'),
 
 
 var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
+var ALL_SEPARATORS = new RegExp('\\' + path.sep, 'g');
 var MY_SPECIAL_FRIEND = '☃';
 
 
@@ -55,7 +56,7 @@ function createRenderer(config, doRead) {
         name = name.replace(views, ''); // Remove absolute path (if necessary)
         name = name.replace(ext, '');   // Remove file extension
         name = name.replace(LEADING_SEPARATOR, ''); // Remove leading slash (platform-dependent, if necessary)
-        name = name.replace(path.sep, '/'); // Ensure path separators in name are all forward-slashes.
+        name = name.replace(ALL_SEPARATORS, '/'); // Ensure path separators in name are all forward-slashes.
         return name;
     };
 
