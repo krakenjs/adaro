@@ -149,6 +149,11 @@ function createRenderer(config, doRead) {
         delete options.settings;
         delete options.ext;
 
+        if (config.stream) {
+            callback(null, dust.stream(name, base));
+            return;
+        }
+
         dust.render(name, base, function () {
             if (!cache) {
                 dust.cache = {};
