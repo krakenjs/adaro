@@ -4,7 +4,8 @@
 var fs = require('fs'),
     path = require('path'),
     reqwire = require('./reqwire'),
-    dust = reqwire('dustjs-helpers', 'dustjs-linkedin');
+    dust = reqwire('dustjs-helpers', 'dustjs-linkedin'),
+    Readable = require('stream').Readable;
 
 
 var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
@@ -150,7 +151,7 @@ function createRenderer(config, doRead) {
         delete options.ext;
 
         if (config.stream) {
-            callback(null, dust.stream(name, base));
+            callback(null, new Readable().wrap(dust.stream(name, base)));
             return;
         }
 

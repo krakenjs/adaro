@@ -6,8 +6,7 @@ var fs = require('fs'),
     express = require('express'),
     engine = require('../index'),
     dust = require('dustjs-linkedin'),
-    assert = require('chai').assert,
-    Readable = require('stream').Readable;
+    assert = require('chai').assert;
 
 
 describe('express-dustjs', function () {
@@ -645,7 +644,6 @@ describe('express-dustjs', function () {
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
-                    stream = new Readable().wrap(stream);
                     stream.pipe(res);
                 });
             });
