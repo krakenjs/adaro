@@ -4,7 +4,8 @@
 var fs = require('fs'),
     path = require('path'),
     reqwire = require('./reqwire'),
-    dust = reqwire('dustjs-helpers', 'dustjs-linkedin');
+    dust = reqwire('dustjs-helpers', 'dustjs-linkedin'),
+    Readable = require('stream').Readable;
 
 
 var LEADING_SEPARATOR = new RegExp('^[\\' + path.sep + ']?', '');
@@ -149,6 +150,11 @@ function createRenderer(config, doRead) {
         delete options.settings;
         delete options.ext;
 
+        if (config.stream) {
+            callback(null, new Readable().wrap(dust.stream(name, base)));
+            return;
+        }
+
         dust.render(name, base, function () {
             if (!cache) {
                 dust.cache = {};
@@ -208,10 +214,16 @@ exports.dust = function (config) {
 };
 
 
-exports.compile = dust.compile;
+exports.compile = function () {
+    console.log('express-dustjs#compile is deprecated and will be remove in future versions.');
+    return dust.compile.apply(dust, arguments);
+};
 
 
-exports.compileFn = dust.compileFn;
+exports.compileFn = function () {
+    console.log('express-dustjs#compileFn is deprecated and will be remove in future versions.');
+    return dust.compileFn.apply(dust, arguments);
+};
 
 
 exports.__defineGetter__('onLoad', function () {

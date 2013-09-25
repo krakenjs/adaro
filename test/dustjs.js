@@ -629,6 +629,125 @@ describe('express-dustjs', function () {
 
     });
 
+
+    describe('streaming', function () {
+
+        describe('without caching', function () {
+            var app, server;
+
+            before(function (next) {
+                app = express();
+                app.engine('dust', engine.dust({ cache: false, stream: true }));
+                app.engine('js', engine.js({ cache: false, stream: true }));
+                app.set('view engine', 'dust');
+                app.set('view cache', false);
+                app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+                app.get('/*', function (req, res) {
+                    res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
+                        stream.pipe(res);
+                    });
+                });
+
+                server = app.listen(8000, next);
+            });
+
+
+            after(function (next) {
+                server.once('close', next);
+                server.close();
+            });
+
+
+            it('should support streaming dust templates', function (next) {
+                inject('/index', function (err, data) {
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+
+
+                    inject('/index', function (err, data) {
+                        assert.ok(!err);
+                        assert.strictEqual(data, RESULT);
+                        app.set('view engine', 'js');
+                        next();
+                    });
+                });
+            });
+
+
+            it('should support streaming compiled js templates', function (next) {
+                inject('/index', function (err, data) {
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+
+                    inject('/index', function (err, data) {
+                        assert.ok(!err);
+                        assert.strictEqual(data, RESULT);
+                        next();
+                    });
+                });
+            });
+        });
+
+
+        describe('with caching', function () {
+            var app, server;
+
+            before(function (next) {
+                app = express();
+                app.engine('dust', engine.dust({ cache: true, stream: true }));
+                app.engine('js', engine.js({ cache: true, stream: true }));
+                app.set('view engine', 'dust');
+                app.set('view cache', false);
+                app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+
+                app.get('/*', function (req, res) {
+                    res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
+                        stream.pipe(res);
+                    });
+                });
+
+                server = app.listen(8000, next);
+            });
+
+
+            after(function (next) {
+                server.once('close', next);
+                server.close();
+            });
+
+
+            it('should support streaming dust templates', function (next) {
+                inject('/index', function (err, data) {
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+
+                    inject('/index', function (err, data) {
+                        assert.ok(!err);
+                        assert.strictEqual(data, RESULT);
+                        app.set('view engine', 'js');
+                        next();
+                    });
+                });
+            });
+
+
+            it('should support streaming compiled js templates', function (next) {
+                inject('/index', function (err, data) {
+                    assert.ok(!err);
+                    assert.strictEqual(data, RESULT);
+
+                    inject('/index', function (err, data) {
+                        assert.ok(!err);
+                        assert.strictEqual(data, RESULT);
+                        next();
+                    });
+                });
+            });
+        });
+
+    });
+
 });
 
 
