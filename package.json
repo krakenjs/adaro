@@ -6,7 +6,13 @@
   "scripts": {
     "test": "make test"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.paypal.com/webcore/express-dustjs.git"
+  },
+  "publishConfig": {
+    "registry": "http://npm.paypal.com"
+  },
   "keywords": [
     "dustjs",
     "express",
