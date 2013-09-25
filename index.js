@@ -214,10 +214,16 @@ exports.dust = function (config) {
 };
 
 
-exports.compile = dust.compile;
+exports.compile = function () {
+    console.log('express-dustjs#compile is deprecated and will be remove in future versions.');
+    return dust.compile.apply(dust, arguments);
+};
 
 
-exports.compileFn = dust.compileFn;
+exports.compileFn = function () {
+    console.log('express-dustjs#compileFn is deprecated and will be remove in future versions.');
+    return dust.compileFn.apply(dust, arguments);
+};
 
 
 exports.__defineGetter__('onLoad', function () {
