@@ -35,6 +35,38 @@ describe('express-dustjs', function () {
     });
 
 
+    describe('engine', function () {
+
+        it('should create a dust engine', function () {
+            var config, dst;
+
+            config = { cache: false, foo: 'bar' };
+            dst = engine.dust(config);
+
+            assert.isFunction(dst);
+            assert.isObject(dst.settings);
+            assert.notStrictEqual(dst.settings, config);
+            assert.strictEqual(dst.settings.cache, config.cache);
+            assert.strictEqual(dst.settings.foo, config.foo);
+        });
+
+
+        it('should create a js engine', function () {
+            var config, js;
+
+            config = { cache: false, foo: 'bar' };
+            js = engine.dust(config);
+
+            assert.isFunction(js);
+            assert.isObject(js.settings);
+            assert.notStrictEqual(js.settings, config);
+            assert.strictEqual(js.settings.cache, config.cache);
+            assert.strictEqual(js.settings.foo, config.foo);
+        });
+
+    });
+
+
     describe('dust', function () {
 
         var app, server;

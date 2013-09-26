@@ -1,3 +1,11 @@
+##### v0.1.1 - 25/09/2013
+
+**Bugs**
+- None
+
+**Features**
+- Expose engine settings
+
 ##### v0.1.0 - 25/09/2013
 
 **Bugs**

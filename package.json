@@ -1,6 +1,6 @@
 {
   "name": "express-dustjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An express renderer for DustJs Templates",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,9 @@
   ],
   "author": "Erik Toth <ertoth@paypal.com>",
   "license": "BSD",
-  "dependencies": {},
+  "dependencies": {
+    "objutil": "~0.3.1"
+  },
   "devDependencies": {
     "mocha": "~1.9.0",
     "chai": "~1.5.0",
