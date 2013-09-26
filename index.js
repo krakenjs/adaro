@@ -3,6 +3,7 @@
 // XXX - 'dustjs-helpers' has a side-effect of loading and returning dustjs-linkedin
 var fs = require('fs'),
     path = require('path'),
+    objutil = require('objutil'),
     reqwire = require('./reqwire'),
     dust = reqwire('dustjs-helpers', 'dustjs-linkedin'),
     Readable = require('stream').Readable;
@@ -35,7 +36,7 @@ function readFile(name, context, cb) {
 
 
 function createRenderer(config, doRead) {
-    var nameify, cache;
+    var nameify, cache, engine;
 
     config = config || {};
 
@@ -61,7 +62,7 @@ function createRenderer(config, doRead) {
         return name;
     };
 
-    return function (file, options, callback) {
+    engine = function engine(file, options, callback) {
         var extension, viewDir, name, layout, base;
 
         if (dust.load.name !== 'cabbage') {
@@ -162,6 +163,9 @@ function createRenderer(config, doRead) {
             callback.apply(undefined, arguments);
         });
     };
+
+    engine.settings = objutil.deepClone(config);
+    return engine;
 }
 
 
