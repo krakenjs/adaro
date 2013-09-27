@@ -1,6 +1,6 @@
 {
   "name": "express-dustjs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An express renderer for DustJs Templates",
   "main": "index.js",
   "scripts": {
