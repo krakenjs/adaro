@@ -3,7 +3,7 @@
 
 var path = require('path'),
     assert = require('chai').assert,
-    reqwire = require('../reqwire');
+    reqwire = require('../lib/reqwire');
 
 
 describe('reqwire', function () {

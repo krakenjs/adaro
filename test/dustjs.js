@@ -5,6 +5,7 @@ var fs = require('fs'),
     path = require('path'),
     express = require('express'),
     engine = require('../index'),
+    patch = require('../lib/patch'),
     dust = require('dustjs-linkedin'),
     assert = require('chai').assert;
 
@@ -37,6 +38,8 @@ describe('express-dustjs', function () {
 
     describe('engine', function () {
 
+        afterEach(patch.undo);
+
         it('should create a dust engine', function () {
             var config, dst;
 
@@ -45,7 +48,6 @@ describe('express-dustjs', function () {
 
             assert.isFunction(dst);
             assert.isObject(dst.settings);
-            assert.notStrictEqual(dst.settings, config);
             assert.strictEqual(dst.settings.cache, config.cache);
             assert.strictEqual(dst.settings.foo, config.foo);
         });
@@ -55,11 +57,10 @@ describe('express-dustjs', function () {
             var config, js;
 
             config = { cache: false, foo: 'bar' };
-            js = engine.dust(config);
+            js = engine.js(config);
 
             assert.isFunction(js);
             assert.isObject(js.settings);
-            assert.notStrictEqual(js.settings, config);
             assert.strictEqual(js.settings.cache, config.cache);
             assert.strictEqual(js.settings.foo, config.foo);
         });
@@ -89,6 +90,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -159,6 +161,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -229,6 +232,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -271,6 +275,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -337,6 +342,7 @@ describe('express-dustjs', function () {
             engine.onLoad = undefined;
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -413,6 +419,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -472,6 +479,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -543,6 +551,7 @@ describe('express-dustjs', function () {
             server.once('close', next);
             server.close();
             dust.render = render;
+            patch.undo();
         });
 
 
@@ -582,6 +591,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -633,6 +643,7 @@ describe('express-dustjs', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
+            patch.undo();
         });
 
 
@@ -675,8 +686,12 @@ describe('express-dustjs', function () {
                 app.set('view cache', false);
                 app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
 
-                app.get('/*', function (req, res) {
+                app.get('/*', function (req, res, next) {
                     res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
+                        if (err) {
+                            next(err);
+                            return;
+                        }
                         stream.pipe(res);
                     });
                 });
@@ -688,18 +703,18 @@ describe('express-dustjs', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
+                patch.undo();
             });
 
 
             it('should support streaming dust templates', function (next) {
-                inject('/index', function (err, data) {
+                inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, PARTIAL_RESULT);
 
-
-                    inject('/index', function (err, data) {
+                    inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, RESULT);
+                        assert.strictEqual(data, PARTIAL_RESULT);
                         app.set('view engine', 'js');
                         next();
                     });
@@ -708,13 +723,13 @@ describe('express-dustjs', function () {
 
 
             it('should support streaming compiled js templates', function (next) {
-                inject('/index', function (err, data) {
+                inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, PARTIAL_RESULT);
 
-                    inject('/index', function (err, data) {
+                    inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, RESULT);
+                        assert.strictEqual(data, PARTIAL_RESULT);
                         next();
                     });
                 });
@@ -746,17 +761,18 @@ describe('express-dustjs', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
+                patch.undo();
             });
 
 
             it('should support streaming dust templates', function (next) {
-                inject('/index', function (err, data) {
+                inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, PARTIAL_RESULT);
 
-                    inject('/index', function (err, data) {
+                    inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, RESULT);
+                        assert.strictEqual(data, PARTIAL_RESULT);
                         app.set('view engine', 'js');
                         next();
                     });
@@ -765,13 +781,13 @@ describe('express-dustjs', function () {
 
 
             it('should support streaming compiled js templates', function (next) {
-                inject('/index', function (err, data) {
+                inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, PARTIAL_RESULT);
 
-                    inject('/index', function (err, data) {
+                    inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, RESULT);
+                        assert.strictEqual(data, PARTIAL_RESULT);
                         next();
                     });
                 });
