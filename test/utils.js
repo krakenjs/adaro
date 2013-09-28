@@ -40,11 +40,11 @@ describe('utils', function () {
                 out: true
             },
             'handle relative directory paths': {
-                args: [ ['foo', 'bar', 'baz'].join(path.sep) ],
+                args: [ path.join('foo', 'bar', 'baz') ],
                 out: false
             },
             'handle relative file paths': {
-                args: [ ['foo', 'bar', 'baz.js'].join(path.sep) ],
+                args: [ path.join('foo', 'bar', 'baz.js') ],
                 out: false
             }
         };
@@ -84,7 +84,7 @@ describe('utils', function () {
                 out: 'foo'
             },
             'convert a relative path': {
-                args: [ ['foo', 'bar', 'baz.js'].join(path.sep) ],
+                args: [ path.join('foo', 'bar', 'baz.js') ],
                 out: 'foo/bar/baz.js'
             },
             'convert an absolute path': {

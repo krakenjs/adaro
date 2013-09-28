@@ -7,22 +7,14 @@ var fs = require('fs'),
     engine = require('../index'),
     patch = require('../lib/patch'),
     dust = require('dustjs-linkedin'),
-    assert = require('chai').assert;
+    assert = require('chai').assert,
+    assertions = require('./assertions');
 
 
 describe('express-dustjs', function () {
 
     var dir = process.cwd();
     var context = { title: 'Hello, world!' };
-
-    var RESULT = '<!DOCTYPE html><html lang="en"><head><title>Hello, world!</title></head><body><h1>node template test</h1></body></html>';
-    var HELPER_RESULT = '<h1>node template test Hello, world!</h1>';
-    var PARTIAL_RESULT = '<!DOCTYPE html><html lang="en"><head><title>Hello, world!</title></head><body><h1>node template test Hello, world!</h1></body></html>';
-    var SUBDIR_RESULT = '<p>howdy doodie</p>';
-    var LAYOUT_RESULT = '<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>';
-    var ALT_LAYOUT_RESULT = '<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>';
-    var BLOCK_SCOPE_RESULT = '<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:';
-    var MAKE_BASE_RESULT = 'CampbellCA95008<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>';
 
 
     before(function () {
@@ -102,7 +94,7 @@ describe('express-dustjs', function () {
         it('should render a template', function (next) {
             inject('/index', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, RESULT);
+                assert.strictEqual(data, assertions.RESULT);
                 next();
             });
         });
@@ -111,7 +103,7 @@ describe('express-dustjs', function () {
         it('should render a template in a subdirectory', function (next) {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 next();
             });
         });
@@ -129,7 +121,7 @@ describe('express-dustjs', function () {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.isTrue(invoked);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 engine.onLoad = undefined;
                 next();
             });
@@ -173,7 +165,7 @@ describe('express-dustjs', function () {
         it('should render a template', function (next) {
             inject('/index', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, RESULT);
+                assert.strictEqual(data, assertions.RESULT);
                 next();
             });
         });
@@ -182,7 +174,7 @@ describe('express-dustjs', function () {
         it('should render a template in a subdirectory', function (next) {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 next();
             });
         });
@@ -200,7 +192,7 @@ describe('express-dustjs', function () {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.isTrue(invoked);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 engine.onLoad = undefined;
                 next();
             });
@@ -244,7 +236,7 @@ describe('express-dustjs', function () {
         it('should render a template', function (next) {
             inject('/master', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, PARTIAL_RESULT);
+                assert.strictEqual(data, assertions.PARTIAL);
                 next();
             });
         });
@@ -299,7 +291,7 @@ describe('express-dustjs', function () {
         it('should use helpers for templates', function (next) {
             inject('/helper', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, HELPER_RESULT);
+                assert.strictEqual(data, assertions.HELPER);
                 next();
             });
         });
@@ -310,7 +302,7 @@ describe('express-dustjs', function () {
 
             inject('/helper', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, HELPER_RESULT);
+                assert.strictEqual(data, assertions.HELPER);
                 app.set('view engine', 'dust');
                 next();
             });
@@ -362,7 +354,7 @@ describe('express-dustjs', function () {
 
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 assert.ok(invoked);
                 app.set('view engine', 'dust');
                 next();
@@ -383,7 +375,7 @@ describe('express-dustjs', function () {
             inject('/master', function (err, data) {
                 err && console.log(err);
                 assert.ok(!err);
-                assert.strictEqual(data, PARTIAL_RESULT);
+                assert.strictEqual(data, assertions.PARTIAL);
                 assert.strictEqual(templates.length, 2);
                 assert.strictEqual(templates[0], dustFile);
                 next();
@@ -431,7 +423,7 @@ describe('express-dustjs', function () {
         it('should support a global layout', function (next) {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, LAYOUT_RESULT);
+                assert.strictEqual(data, assertions.LAYOUT);
                 next();
             });
         });
@@ -440,7 +432,7 @@ describe('express-dustjs', function () {
         it('should allow local layouts', function (next) {
             inject('/inc/include?layout=layouts/altmaster', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, ALT_LAYOUT_RESULT);
+                assert.strictEqual(data, assertions.ALT_LAYOUT);
                 next();
             });
         });
@@ -449,7 +441,7 @@ describe('express-dustjs', function () {
         it('should allow layout to be disabled', function (next) {
             inject('/inc/include?layout=false', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, SUBDIR_RESULT);
+                assert.strictEqual(data, assertions.SUBDIR);
                 next();
             });
         });
@@ -491,7 +483,7 @@ describe('express-dustjs', function () {
         it('should function without error', function (next) {
             inject('/iterator', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, BLOCK_SCOPE_RESULT);
+                assert.strictEqual(data, assertions.BLOCK_SCOPE);
                 next();
             });
         });
@@ -563,7 +555,7 @@ describe('express-dustjs', function () {
         it('should function without error', function (next) {
             inject('/nested/index', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, MAKE_BASE_RESULT);
+                assert.strictEqual(data, assertions.MAKE_BASE);
                 next();
             });
         });
@@ -606,13 +598,13 @@ describe('express-dustjs', function () {
             inject('/index', function (err, data) {
                 assert.isFunction(dust.cache.index);
                 assert.ok(!err);
-                assert.strictEqual(data, RESULT);
+                assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
                     assert.isFunction(dust.cache.index);
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, assertions.RESULT);
                     next();
                 });
             });
@@ -658,13 +650,13 @@ describe('express-dustjs', function () {
             inject('/index', function (err, data) {
                 assert.isFunction(dust.cache.index);
                 assert.ok(!err);
-                assert.strictEqual(data, RESULT);
+                assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
                     assert.isFunction(dust.cache.index);
                     assert.ok(!err);
-                    assert.strictEqual(data, RESULT);
+                    assert.strictEqual(data, assertions.RESULT);
                     next();
                 });
             });
@@ -710,11 +702,11 @@ describe('express-dustjs', function () {
             it('should support streaming dust templates', function (next) {
                 inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, PARTIAL_RESULT);
+                    assert.strictEqual(data, assertions.PARTIAL);
 
                     inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, PARTIAL_RESULT);
+                        assert.strictEqual(data, assertions.PARTIAL);
                         app.set('view engine', 'js');
                         next();
                     });
@@ -725,11 +717,11 @@ describe('express-dustjs', function () {
             it('should support streaming compiled js templates', function (next) {
                 inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, PARTIAL_RESULT);
+                    assert.strictEqual(data, assertions.PARTIAL);
 
                     inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, PARTIAL_RESULT);
+                        assert.strictEqual(data, assertions.PARTIAL);
                         next();
                     });
                 });
@@ -768,11 +760,11 @@ describe('express-dustjs', function () {
             it('should support streaming dust templates', function (next) {
                 inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, PARTIAL_RESULT);
+                    assert.strictEqual(data, assertions.PARTIAL);
 
                     inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, PARTIAL_RESULT);
+                        assert.strictEqual(data, assertions.PARTIAL);
                         app.set('view engine', 'js');
                         next();
                     });
@@ -783,11 +775,11 @@ describe('express-dustjs', function () {
             it('should support streaming compiled js templates', function (next) {
                 inject('/master', function (err, data) {
                     assert.ok(!err);
-                    assert.strictEqual(data, PARTIAL_RESULT);
+                    assert.strictEqual(data, assertions.PARTIAL);
 
                     inject('/master', function (err, data) {
                         assert.ok(!err);
-                        assert.strictEqual(data, PARTIAL_RESULT);
+                        assert.strictEqual(data, assertions.PARTIAL);
                         next();
                     });
                 });
