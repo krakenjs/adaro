@@ -1,4 +1,4 @@
-express-dustjs
+adaro
 ===================
 
 An expressjs plugin for handling DustJS view rendering. [dustjs-helpers] (https://github.com/linkedin/dustjs-helpers) are
@@ -6,7 +6,7 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var dustjs = require('express-dustjs');
+var dustjs = require('adaro');
 
 var app = express();
 
