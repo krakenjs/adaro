@@ -26,7 +26,7 @@
     }
   ],
   "dependencies": {
-    "objutil": "~0.3.1"
+    "core-util-is": "~1.0.0"
   },
   "devDependencies": {
     "mocha": "~1.9.0",
