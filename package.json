@@ -1,6 +1,6 @@
 {
   "name": "adaro",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "An express renderer for DustJs Templates",
   "main": "index.js",
   "scripts": {
