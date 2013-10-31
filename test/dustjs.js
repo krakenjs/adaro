@@ -11,7 +11,7 @@ var fs = require('fs'),
     assertions = require('./assertions');
 
 
-describe('express-dustjs', function () {
+describe('adaro', function () {
 
     var dir = process.cwd();
     var context = { title: 'Hello, world!' };
