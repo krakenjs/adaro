@@ -8,10 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.paypal.com/webcore/express-dustjs.git"
-  },
-  "publishConfig": {
-    "registry": "http://npm.paypal.com"
+    "url": "https://github.com/paypal/adaro.git"
   },
   "keywords": [
     "dustjs",
