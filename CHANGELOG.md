@@ -1,9 +1,13 @@
-##### v0.1.3 (in progress) - 2013xxxx
-*** Bugs***
+##### v0.1.5 (in progress) - 2013xxxx
+**Bugs**
 - Fixed parallel rendering race condition.
 
 **Features**
 -None
+
+##### v0.1.4 - ????????
+##### v0.1.3 - ????????
+- versioning miscue
 
 ##### v0.1.2 - 20130925
 
