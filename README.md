@@ -106,3 +106,10 @@ dustjs.onLoad = function (name, context, callback) {
 app.engine('dust', dustjs.dust({ cache: false }));
 app.set('view engine', 'dust');
 ```
+
+###FAQ
+
+##### `dustjs-linkedin` and `dustjs-helpers` requirements
+You need to add these libs as dependencies in your app's own package.json.
+
+We intentionally didn't add the dependency to module's package.json such that we didn't want to be in control of it or its versions on behalf of apps. That way app owners can manage the dependency however they see fit and this module can just "enhance" the existing library. It does assume the version of dust.js doesn't change template loading or streaming behavior, but beyond that compatibility should be fine. If there IS a major version change to dust APIs we'll be sure to manage those changes here, so the upgrade/handling of is transparent.
