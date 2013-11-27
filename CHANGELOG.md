@@ -1,10 +1,3 @@
-##### v0.1.6 - 20131127
-**Bugs**
-- None
-
-**Features**
-- Migrated Makefile to Gruntfile.
-
 ##### v0.1.5 (in progress) - 2013xxxx
 **Bugs**
 - Fixed parallel rendering race condition.
