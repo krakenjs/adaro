@@ -12,22 +12,22 @@ describe('async rendering & races', function () {
     var dust;
     var dir = process.cwd();
     var defaultContext = {
-        views: path.join(__dirname, 'fixtures', 'templates'),
-        layout: 'layouts/master',
-        ext: 'dust',
-        address: {
-            city: 'Campbell',
-            state: 'CA',
-            zip: '95008'
-        },
-        states: [{
-            name: 'California',
-            cities: [
-                { name: 'San Diego' },
-                { name: 'San Francisco' },
-                { name: 'San Jose' }
-            ]
-        },
+            views: path.join(__dirname, 'fixtures', 'templates'),
+            layout: 'layouts/master',
+            ext: 'dust',
+            address: {
+                city: 'Campbell',
+                state: 'CA',
+                zip: '95008'
+            },
+            states: [{
+                name: 'California',
+                cities: [
+                    { name: 'San Diego' },
+                    { name: 'San Francisco' },
+                    { name: 'San Jose' }
+                ]
+            },
             {
                 name: 'Virginia',
                 cities: [
@@ -36,7 +36,7 @@ describe('async rendering & races', function () {
                     { name: 'Manassass' }
                 ]
             }]
-    };
+        };
 
 
     before(function () {
