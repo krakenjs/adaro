@@ -236,7 +236,7 @@ describe('adaro', function () {
         it('should render a template', function (next) {
             inject('/master', function (err, data) {
                 assert.ok(!err);
-                assert.strictEqual(data, assertions.PARTIAL);
+                assert.strictEqual(data, assertions.PARTIAL_NO_HELPERS);
                 next();
             });
         });
