@@ -1,1 +1,1 @@
-<h1>node template test {@if cond="1 > 0"}{title}{/if}</h1>
+<h1>node template test {@node /}{@if cond="1 > 0"}{title}{/if}</h1>
