@@ -6,6 +6,8 @@
   
   "PARTIAL": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1>node template test Hello, world!</h1></body></html>",
   
+  "PARTIAL_NO_HELPERS": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1> template test Hello, world!</h1></body></html>",
+  
   "SUBDIR": "<p>howdy doodie</p>",
   
   "LAYOUT": "<html><head><title>Master</title></head><body><p>howdy doodie</p></body></html>",
