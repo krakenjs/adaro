@@ -250,8 +250,8 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'Goodbye!' } }, './fixtures/helpers/browser'] }));
-            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'Goodbye!' } }, './fixtures/helpers/browser'] }));
+            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
+            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
