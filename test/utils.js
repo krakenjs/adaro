@@ -99,6 +99,10 @@ describe('utils', function () {
                 args: [ sysroot + path.join('views', 'inc', 'template.js'), sysroot + path.join('views', 'inc') ],
                 out: 'template.js'
             },
+            'support optional absolute views dir with special characters': {
+                args: [ sysroot + path.join('build adaro (pull request)', 'views', 'inc', 'template.js'), sysroot + path.join('build adaro (pull request)', 'views', 'inc') ],
+                out: 'template.js'
+            },
             'not support relative file with absolute views dir': {
                 args: [ path.join('views', 'inc', 'template.js'), sysroot + path.join('views', 'inc') ],
                 out: 'views/inc/template.js'
@@ -138,7 +142,6 @@ describe('utils', function () {
         });
 
     });
-
 
     describe('resolveViewDir', function () {
 
