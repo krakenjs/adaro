@@ -18,6 +18,8 @@ app.set('view engine', 'dust');
 // app.set('view engine', 'js');
 ```
 
+Make sure that if you've `app.set('views', somepath)` that the path separators are correct for your operating system.
+
 
 ### Configuration
 Config options can be used to specify dust helpers, enabled/disable caching, and custom file loading handlers.
