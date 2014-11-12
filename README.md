@@ -109,6 +109,17 @@ app.engine('dust', dustjs.dust({ cache: false }));
 app.set('view engine', 'dust');
 ```
 
+#### `helpers` (optional) An array of helper modules to require and use.
+
+Expects helpers to be in the form of:
+
+```
+module.exports = function (dust, [options]) {
+    dust.helpers.something = function (chunk, context, bodies, params) {
+    };
+};
+```
+
 ###FAQ
 
 ##### `dustjs-linkedin` and `dustjs-helpers` requirements
