@@ -3,6 +3,8 @@ adaro
 
 Lead Maintainer: [Aria Stewart](https://github.com/aredridel)  
 
+[![Build Status](https://travis-ci.org/krakenjs/adaro.svg?branch=master)](https://travis-ci.org/krakenjs/adaro)
+
 An expressjs plugin for handling DustJS view rendering. [dustjs-helpers] (https://github.com/linkedin/dustjs-helpers) are
 included by default in this module.
 
