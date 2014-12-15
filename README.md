@@ -1,6 +1,8 @@
 adaro
 ===================
 
+Lead Maintainer: [Aria Stewart](https://github.com/aredridel)  
+
 An expressjs plugin for handling DustJS view rendering. [dustjs-helpers] (https://github.com/linkedin/dustjs-helpers) are
 included by default in this module.
 
