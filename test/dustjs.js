@@ -12,19 +12,7 @@ var fs = require('fs'),
 
 describe('adaro', function () {
 
-    var dir = process.cwd();
     var context = { title: 'Hello, world!' };
-
-
-    before(function () {
-        // Ensure the test case assumes it's being run from application root.
-        // Depending on the test harness this may not be the case, so shim.
-        process.chdir(__dirname);
-    });
-
-    after(function () {
-        process.chdir(dir);
-    });
 
 
     describe('engine', function () {
@@ -66,7 +54,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -136,7 +124,7 @@ describe('adaro', function () {
             app.engine('js', engine.js({ cache: false }));
             app.set('view engine', 'js');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -206,7 +194,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -243,16 +231,18 @@ describe('adaro', function () {
         var app, server;
 
         before(function (next) {
+            var popd = pushd(__dirname);
             app = express();
             app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
             app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
             });
+            popd();
 
             server = app.listen(8000, next);
         });
@@ -313,7 +303,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -340,7 +330,7 @@ describe('adaro', function () {
 
             engine.onLoad = function (name, cb) {
                 invoked = true;
-                name = path.join(process.cwd(), 'fixtures', 'templates', 'inc', 'include.dust');
+                name = path.resolve(__dirname, 'fixtures/templates/inc/include.dust');
                 fs.readFile(name, 'utf8', cb);
             };
 
@@ -356,7 +346,7 @@ describe('adaro', function () {
 
         it('should support passing context to the onLoad handler', function (next) {
             var templates = [];
-            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
+            var dustFile = path.resolve(__dirname, 'fixtures/templates/master.dust');
 
             engine.onLoad = function (name, context, callback) {
                 name = path.join(context.global.settings.views, name + '.' + context.global.ext);
@@ -386,7 +376,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false, layout: 'layouts/master' }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 var model = { title: 'Hello, world!' };
@@ -449,7 +439,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { emoji: [':neckbeard:', ':poop:'] });
@@ -519,7 +509,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: false }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), model);
@@ -559,7 +549,7 @@ describe('adaro', function () {
             app.engine('dust', engine.dust({ cache: true }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -610,7 +600,7 @@ describe('adaro', function () {
             app.engine('js', engine.js({ cache: true }));
             app.set('view engine', 'js');
             app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), { title: 'Hello, world!' });
@@ -663,7 +653,7 @@ describe('adaro', function () {
                 app.engine('js', engine.js({ cache: false, stream: true }));
                 app.set('view engine', 'dust');
                 app.set('view cache', false);
-                app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+                app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
                 app.get('/*', function (req, res, next) {
                     res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
@@ -724,7 +714,7 @@ describe('adaro', function () {
                 app.engine('js', engine.js({ cache: true, stream: true }));
                 app.set('view engine', 'dust');
                 app.set('view cache', false);
-                app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
+                app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
                 app.get('/*', function (req, res) {
                     res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
@@ -796,4 +786,12 @@ function inject(path, callback) {
     });
     req.on('error', callback);
     req.end();
+}
+
+function pushd(target) {
+    var dir = process.cwd();
+    process.chdir(target);
+    return function () {
+        process.chdir(dir);
+    };
 }
