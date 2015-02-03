@@ -23,7 +23,8 @@
     }
   ],
   "dependencies": {
-    "core-util-is": "^1.0.0"
+    "core-util-is": "^1.0.0",
+    "dustjacket": "^2.0.2"
   },
   "devDependencies": {
     "chai": "^1.5.0",

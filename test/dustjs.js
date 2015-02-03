@@ -5,7 +5,6 @@ var fs = require('fs'),
     path = require('path'),
     express = require('express'),
     engine = require('../index'),
-    patch = require('../lib/patch'),
     dust = require('dustjs-linkedin'),
     assert = require('chai').assert,
     assertions = require('./assertions');
@@ -29,8 +28,6 @@ describe('adaro', function () {
 
 
     describe('engine', function () {
-
-        afterEach(patch.undo);
 
         it('should create a dust engine', function () {
             var config, dst;
@@ -82,12 +79,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -153,12 +149,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -224,12 +219,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -267,12 +261,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -334,12 +327,11 @@ describe('adaro', function () {
             engine.onLoad = undefined;
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -411,12 +403,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -471,12 +462,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -543,12 +533,11 @@ describe('adaro', function () {
             server.once('close', next);
             server.close();
             dust.render = render;
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            dust.cache = {};
         });
 
 
@@ -583,7 +572,6 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
@@ -635,7 +623,6 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
@@ -695,7 +682,6 @@ describe('adaro', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
-                patch.undo();
             });
 
 
@@ -753,7 +739,6 @@ describe('adaro', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
-                patch.undo();
             });
 
 

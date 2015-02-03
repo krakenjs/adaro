@@ -4,7 +4,6 @@
 var path = require('path'),
     assert = require('chai').assert,
     dustjs = require('dustjs-linkedin'),
-    file = require('../lib/reader/file'),
     engine = require('../lib/engine');
 
 describe('async rendering & races', function () {
