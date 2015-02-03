@@ -46,7 +46,6 @@ describe('async rendering & races', function () {
 
     after(function () {
         process.chdir(dir);
-        dustjs.onLoad = undefined;
     });
 
     afterEach(function () {

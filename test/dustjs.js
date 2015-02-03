@@ -93,24 +93,6 @@ describe('adaro', function () {
         });
 
 
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
-                next();
-            });
-        });
-
     });
 
 
@@ -158,25 +140,6 @@ describe('adaro', function () {
             inject('/inc/include', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.SUBDIR);
-                next();
-            });
-        });
-
-
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
                 next();
             });
         });
@@ -287,79 +250,6 @@ describe('adaro', function () {
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.HELPER);
                 app.set('view engine', 'dust');
-                next();
-            });
-        });
-
-    });
-
-
-    describe('onLoad API', function () {
-
-        var app, server;
-
-        before(function (next) {
-            app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
-            app.set('view engine', 'dust');
-            app.set('view cache', false);
-            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
-
-            app.get('/*', function (req, res) {
-                res.render(req.path.substr(1), { title: 'Hello, world!' });
-            });
-
-            server = app.listen(8000, next);
-        });
-
-
-        after(function (next) {
-            engine.onLoad = undefined;
-            server.once('close', next);
-            server.close();
-        });
-
-
-        afterEach(function () {
-            dust.cache = {};
-        });
-
-
-        it('should support the default onLoad handler', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, cb) {
-                invoked = true;
-                name = path.resolve(__dirname, 'fixtures/templates/inc/include.dust');
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.SUBDIR);
-                assert.ok(invoked);
-                app.set('view engine', 'dust');
-                next();
-            });
-        });
-
-
-        it('should support passing context to the onLoad handler', function (next) {
-            var templates = [];
-            var dustFile = path.resolve(__dirname, 'fixtures/templates/master.dust');
-
-            engine.onLoad = function (name, context, callback) {
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                templates.push(name);
-                fs.readFile(name, 'utf8', callback);
-            };
-
-            inject('/master', function (err, data) {
-                err && console.log(err);
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.PARTIAL);
-                assert.strictEqual(templates.length, 2);
-                assert.strictEqual(templates[0], dustFile);
                 next();
             });
         });

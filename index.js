@@ -27,19 +27,6 @@ require('dustjs-helpers');
 
 module.exports = Object.create(dust, {
 
-    onLoad: {
-        enumerable: true,
-
-        get: function () {
-            return dust.onLoad;
-        },
-
-        set: function (value) {
-            dust.onLoad = value;
-        }
-
-    },
-
     js: {
         enumerable: true,
         value: engine.create.bind(undefined, 'js')
