@@ -4,7 +4,7 @@
   "description": "An express renderer for DustJs Templates",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "jshint . && mocha --timeout=0 test"
   },
   "repository": {
     "type": "git",
@@ -30,10 +30,6 @@
     "dustjs-helpers": "~1.1.1",
     "dustjs-linkedin": "~2.0.3",
     "express": "~3.4.0",
-    "grunt": "~0.4.1",
-    "grunt-cli": "^0.1.13",
-    "grunt-contrib-jshint": "~0.7.0",
-    "grunt-mocha-test": "~0.7.0",
     "jshint": "*",
     "mocha": "^2.1.0"
   }
