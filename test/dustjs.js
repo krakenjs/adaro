@@ -1,8 +1,7 @@
-/*global describe:false, it:false, before:false, beforeEach:false, after:false, afterEach:false*/
+/*global describe:false, it:false, before:false, after:false, afterEach:false*/
 'use strict';
 
-var fs = require('fs'),
-    path = require('path'),
+var path = require('path'),
     express = require('express'),
     engine = require('../index'),
     dust = require('dustjs-linkedin'),
@@ -12,34 +11,17 @@ var fs = require('fs'),
 
 describe('adaro', function () {
 
-    var context = { title: 'Hello, world!' };
-
-
     describe('engine', function () {
 
         it('should create a dust engine', function () {
             var config, dst;
 
-            config = { cache: false, foo: 'bar' };
-            dst = engine.dust(config);
+            config = { foo: 'bar' };
+            dst = engine(config);
 
             assert.isFunction(dst);
             assert.isObject(dst.settings);
-            assert.strictEqual(dst.settings.cache, config.cache);
             assert.strictEqual(dst.settings.foo, config.foo);
-        });
-
-
-        it('should create a js engine', function () {
-            var config, js;
-
-            config = { cache: false, foo: 'bar' };
-            js = engine.js(config);
-
-            assert.isFunction(js);
-            assert.isObject(js.settings);
-            assert.strictEqual(js.settings.cache, config.cache);
-            assert.strictEqual(js.settings.foo, config.foo);
         });
 
     });
@@ -51,7 +33,7 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            app.engine('dust', engine());
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -97,64 +79,13 @@ describe('adaro', function () {
 
 
 
-    describe('compiled js', function () {
-
-        var app, server;
-
-        before(function (next) {
-            app = express();
-            app.engine('js', engine.js({ cache: false }));
-            app.set('view engine', 'js');
-            app.set('view cache', false);
-            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
-
-            app.get('/*', function (req, res) {
-                res.render(req.path.substr(1), { title: 'Hello, world!' });
-            });
-
-            server = app.listen(8000, next);
-        });
-
-
-        after(function (next) {
-            server.once('close', next);
-            server.close();
-        });
-
-
-        afterEach(function () {
-            dust.cache = {};
-        });
-
-
-        it('should render a template', function (next) {
-            inject('/index', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.RESULT);
-                next();
-            });
-        });
-
-
-        it('should render a template in a subdirectory', function (next) {
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.SUBDIR);
-                next();
-            });
-        });
-
-
-    });
-
-
     describe('partials', function () {
 
         var app, server;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            app.engine('dust', engine());
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -196,8 +127,7 @@ describe('adaro', function () {
         before(function (next) {
             var popd = pushd(__dirname);
             app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
-            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
+            app.engine('dust', engine({ helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -242,18 +172,6 @@ describe('adaro', function () {
             });
         });
 
-
-        it('should use helpers for precompiled js', function (next) {
-            app.set('view engine', 'js');
-
-            inject('/helper', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.HELPER);
-                app.set('view engine', 'dust');
-                next();
-            });
-        });
-
     });
 
 
@@ -263,7 +181,7 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false, layout: 'layouts/master' }));
+            app.engine('dust', engine({ layout: 'layouts/master' }));
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -326,7 +244,7 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            app.engine('dust', engine());
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -396,7 +314,7 @@ describe('adaro', function () {
             render = dust.render;
 
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            app.engine('dust', engine());
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -436,59 +354,8 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: true }));
+            app.engine('dust', engine({ cache: true }));
             app.set('view engine', 'dust');
-            app.set('view cache', false);
-            app.set('views', path.resolve(__dirname, 'fixtures/templates'));
-
-            app.get('/*', function (req, res) {
-                res.render(req.path.substr(1), { title: 'Hello, world!' });
-            });
-
-            server = app.listen(8000, next);
-        });
-
-
-        after(function (next) {
-            server.once('close', next);
-            server.close();
-        });
-
-
-        afterEach(function () {
-            dust.cache = {};
-        });
-
-
-        it('should cache templates if enabled', function (next) {
-            assert.isUndefined(dust.cache.index);
-
-            inject('/index', function (err, data) {
-                assert.isFunction(dust.cache.index);
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.RESULT);
-
-                // This request should pull from cache
-                inject('/index', function (err, data) {
-                    assert.isFunction(dust.cache.index);
-                    assert.ok(!err);
-                    assert.strictEqual(data, assertions.RESULT);
-                    next();
-                });
-            });
-        });
-
-    });
-
-
-    describe('js cache', function () {
-        var app, server;
-
-
-        before(function (next) {
-            app = express();
-            app.engine('js', engine.js({ cache: true }));
-            app.set('view engine', 'js');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
 
@@ -534,74 +401,12 @@ describe('adaro', function () {
 
     describe('streaming', function () {
 
-        describe('without caching', function () {
-            var app, server;
-
-            before(function (next) {
-                app = express();
-                app.engine('dust', engine.dust({ cache: false, stream: true }));
-                app.engine('js', engine.js({ cache: false, stream: true }));
-                app.set('view engine', 'dust');
-                app.set('view cache', false);
-                app.set('views', path.resolve(__dirname, 'fixtures/templates'));
-
-                app.get('/*', function (req, res, next) {
-                    res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
-                        if (err) {
-                            next(err);
-                            return;
-                        }
-                        stream.pipe(res);
-                    });
-                });
-
-                server = app.listen(8000, next);
-            });
-
-
-            after(function (next) {
-                server.once('close', next);
-                server.close();
-            });
-
-
-            it('should support streaming dust templates', function (next) {
-                inject('/master', function (err, data) {
-                    assert.ok(!err);
-                    assert.strictEqual(data, assertions.PARTIAL);
-
-                    inject('/master', function (err, data) {
-                        assert.ok(!err);
-                        assert.strictEqual(data, assertions.PARTIAL);
-                        app.set('view engine', 'js');
-                        next();
-                    });
-                });
-            });
-
-
-            it('should support streaming compiled js templates', function (next) {
-                inject('/master', function (err, data) {
-                    assert.ok(!err);
-                    assert.strictEqual(data, assertions.PARTIAL);
-
-                    inject('/master', function (err, data) {
-                        assert.ok(!err);
-                        assert.strictEqual(data, assertions.PARTIAL);
-                        next();
-                    });
-                });
-            });
-        });
-
-
         describe('with caching', function () {
             var app, server;
 
             before(function (next) {
                 app = express();
-                app.engine('dust', engine.dust({ cache: true, stream: true }));
-                app.engine('js', engine.js({ cache: true, stream: true }));
+                app.engine('dust', engine({ cache: true, stream: true }));
                 app.set('view engine', 'dust');
                 app.set('view cache', false);
                 app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -630,25 +435,11 @@ describe('adaro', function () {
                     inject('/master', function (err, data) {
                         assert.ok(!err);
                         assert.strictEqual(data, assertions.PARTIAL);
-                        app.set('view engine', 'js');
                         next();
                     });
                 });
             });
 
-
-            it('should support streaming compiled js templates', function (next) {
-                inject('/master', function (err, data) {
-                    assert.ok(!err);
-                    assert.strictEqual(data, assertions.PARTIAL);
-
-                    inject('/master', function (err, data) {
-                        assert.ok(!err);
-                        assert.strictEqual(data, assertions.PARTIAL);
-                        next();
-                    });
-                });
-            });
         });
 
     });

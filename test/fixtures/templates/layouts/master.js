@@ -1,1 +1,0 @@
-(function(){dust.register("layouts/master",body_0);function body_0(chk,ctx){return chk.write("<html><head><title>Master</title></head><body>").partial(body_1,ctx,null).write("</body></html>");}function body_1(chk,ctx){return chk.reference(ctx.get("_main"),ctx,"h");}return body_0;})();
