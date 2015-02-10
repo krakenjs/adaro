@@ -4,7 +4,6 @@
 var path = require('path'),
     express = require('express'),
     engine = require('../index'),
-    dust = require('dustjs-linkedin'),
     assert = require('chai').assert,
     assertions = require('./assertions');
 
@@ -53,7 +52,7 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
@@ -85,7 +84,9 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine());
+            var e = engine();
+            console.log(e.dust.helpers);
+            app.engine('dust', e);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
@@ -105,7 +106,7 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
@@ -148,19 +149,19 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
         it('should use helper modules', function () {
-            assert.isFunction(dust.helpers.sep);
-            assert.isFunction(dust.helpers.idx);
+            assert.isFunction(app.engines['.dust'].dust.helpers.sep);
+            assert.isFunction(app.engines['.dust'].dust.helpers.idx);
         });
 
 
         it('should use arbitrary helpers', function () {
-            assert.isFunction(dust.helpers.node);
-            assert.isFunction(dust.helpers.browser);
+            assert.isFunction(app.engines['.dust'].dust.helpers.node);
+            assert.isFunction(app.engines['.dust'].dust.helpers.browser);
         });
 
 
@@ -205,7 +206,7 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
@@ -264,7 +265,7 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
@@ -310,14 +311,15 @@ describe('adaro', function () {
         };
 
         before(function (next) {
-            // Monkey-patch
-            render = dust.render;
 
             app = express();
             app.engine('dust', engine());
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.resolve(__dirname, 'fixtures/templates'));
+
+            // Monkey-patch
+            render = app.engines['.dust'].dust.render;
 
             app.get('/*', function (req, res) {
                 res.render(req.path.substr(1), model);
@@ -330,12 +332,12 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            dust.render = render;
+            app.engines['.dust'].dust.render = render;
         });
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
@@ -374,21 +376,21 @@ describe('adaro', function () {
 
 
         afterEach(function () {
-            dust.cache = {};
+            app.engines['.dust'].dust.cache = {};
         });
 
 
         it('should cache templates if enabled', function (next) {
-            assert.isUndefined(dust.cache.index);
+            assert.isUndefined(app.engines['.dust'].dust.cache.index);
 
             inject('/index', function (err, data) {
-                assert.isFunction(dust.cache.index);
+                assert.isFunction(app.engines['.dust'].dust.cache.index);
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
-                    assert.isFunction(dust.cache.index);
+                    assert.isFunction(app.engines['.dust'].dust.cache.index);
                     assert.ok(!err);
                     assert.strictEqual(data, assertions.RESULT);
                     next();
