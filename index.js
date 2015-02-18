@@ -20,3 +20,5 @@
 var engine = require('./lib/engine');
 
 module.exports = engine.create;
+
+module.exports.dust = module.exports;
