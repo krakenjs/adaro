@@ -10,16 +10,13 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var dustjs = require('adaro');
+var adaro = require('adaro');
 
 var app = express();
 
-app.engine('dust', dustjs.dust({ ... });
+app.engine('dust', adaro({ ... });
 app.set('view engine', 'dust');
 
-// For rendering precompiled templates:
-// app.engine('js', dustjs.js({ ... ));
-// app.set('view engine', 'js');
 ```
 
 Make sure that if you've `app.set('views', somepath)` that the path separators are correct for your operating system.
