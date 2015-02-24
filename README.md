@@ -10,16 +10,13 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var dustjs = require('adaro');
+var adaro = require('adaro');
 
 var app = express();
 
-app.engine('dust', dustjs.dust({ ... });
+app.engine('dust', adaro({ ... });
 app.set('view engine', 'dust');
 
-// For rendering precompiled templates:
-// app.engine('js', dustjs.js({ ... ));
-// app.set('view engine', 'js');
 ```
 
 Make sure that if you've `app.set('views', somepath)` that the path separators are correct for your operating system.
@@ -93,24 +90,6 @@ Alternate API
 module.exports = function (dust) {
     // Add helpers
 };
-```
-
-
-#### `cache` (optional, defaults to true) Boolean
-Set to true to enable dust template caching, or false to disable. If a custom onLoad handler is defined, caching is
-disabled and assumed to be handled by the client.
-
-
-#### `onLoad` (optional) Function with the signature `function (name, [context], callback)`
-Define a file read handler for use by dust in loading files.
-```javascript
-dustjs.onLoad = function (name, context, callback) {
-    // Custom file read/processing pipline
-    callback(err, str);
-}
-
-app.engine('dust', dustjs.dust({ cache: false }));
-app.set('view engine', 'dust');
 ```
 
 #### `helpers` (optional) An array of helper modules to require and use.

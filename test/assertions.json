@@ -4,9 +4,9 @@
   
   "HELPER": "<h1>node template test Hello, world!</h1>",
   
-  "PARTIAL": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1>node template test Hello, world!</h1></body></html>",
+  "PARTIAL": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1> template test </h1></body></html>",
   
-  "PARTIAL_NO_HELPERS": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1> template test Hello, world!</h1></body></html>",
+  "PARTIAL_NO_HELPERS": "<!DOCTYPE html><html lang=\"en\"><head><title>Hello, world!</title></head><body><h1> template test </h1></body></html>",
   
   "SUBDIR": "<p>howdy doodie</p>",
   
@@ -14,7 +14,7 @@
   
   "ALT_LAYOUT": "<html><head><title>Alternate Master</title></head><body><p>howdy doodie</p></body></html>",
   
-  "BLOCK_SCOPE": "<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:",
+  "BLOCK_SCOPE": "<h1> template test </h1>:neckbeard:<h1> template test </h1>:poop:",
     
   "MAKE_BASE": "CampbellCA95008<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>"
 

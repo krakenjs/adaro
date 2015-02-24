@@ -1,75 +1,71 @@
 /*global describe:false, it:false, before:false, beforeEach:false, after:false, afterEach:false*/
 'use strict';
 
+var test = require('tape');
 var path = require('path'),
-    assert = require('chai').assert,
     reqwire = require('../lib/reqwire');
 
 
-describe('reqwire', function () {
+test('reqwire should load a given module', function (t) {
+    var module = reqwire('dustjacket');
+    t.ok(typeof module.registerWith === 'function');
+    t.end();
+});
 
 
-    it('should load a given module', function () {
-        var module = reqwire('mocha');
-        assert.isFunction(module);
-    });
+test('reqwire should try multiple modules', function (t) {
+    var module = reqwire('nonexistent', 'dustjacket');
+    t.ok(typeof module.registerWith === 'function');
+    t.end();
+});
 
 
-    it('should try multiple modules', function () {
-        var module = reqwire('nonexistent', 'mocha');
-        assert.isFunction(module);
-    });
+test('reqwire should error when module is not available', function (t) {
+    var module;
+    t.plan(2);
+    try {
+        module = reqwire('nonexistent');
+    } catch (err) {
+        t.ok(typeof err === 'object');
+    } finally {
+        t.ok(module === undefined);
+    }
+    t.end();
+});
 
 
-    it('should error when module is not available', function () {
-        var error, module;
-        try {
-            module = reqwire('nonexistent');
-        } catch (err) {
-            error = err;
-        } finally {
-            assert.isUndefined(module);
-            assert.isObject(error);
-        }
-    });
+test('reqwire should error when no modules are available', function (t) {
+    var module;
+    t.plan(2);
+    try {
+        module = reqwire('nonexistent', 'alsononexistent');
+    } catch (err) {
+        t.ok(typeof err === 'object');
+    } finally {
+        t.ok(module === undefined);
+    }
+    t.end();
+});
 
 
-    it('should error when no modules are available', function () {
-        var error, module;
-        try {
-            module = reqwire('nonexistent', 'alsononexistent');
-        } catch (err) {
-            error = err;
-        } finally {
-            assert.isUndefined(module);
-            assert.isObject(error);
-        }
-    });
+test('reqwire init should load a js file relative to app root', function (t) {
+    reqwire.init('./test/fixtures/reqwire/module');
+    t.pass();
+    t.end();
+});
 
 
-    describe('init', function () {
-
-        it('should load a js file relative to app root', function () {
-            // In this case mocha is the app, so app root is buried, unfortunately.
-            reqwire.init('./test/fixtures/reqwire/module');
-        });
-
-
-        it('should load and init a file relative to app root', function () {
-            // In this case mocha is the app, so app root is buried, unfortunately.
-            var decoratee = {};
-            reqwire.init('./test/fixtures/reqwire/init', decoratee);
-            assert.strictEqual(decoratee.decorated, true);
-        });
+test('reqwire init should load and init a file relative to app root', function (t) {
+    var decoratee = {};
+    reqwire.init('./test/fixtures/reqwire/init', decoratee);
+    t.strictEqual(decoratee.decorated, true);
+    t.end();
+});
 
 
-        it('should load and init a file with multiple args', function () {
-            // In this case mocha is the app, so app root is buried, unfortunately.
-            var decoratee = {};
-            reqwire.init('./test/fixtures/reqwire/init', decoratee, 'moo');
-            assert.strictEqual(decoratee.decorated, 'moo');
-        });
-
-    });
-
+test('reqwire init should load and init a file with multiple args', function (t) {
+    var decoratee = {};
+    reqwire.init('./test/fixtures/reqwire/init', decoratee, 'moo');
+    t.strictEqual(decoratee.decorated, 'moo');
+    t.end();
 });
