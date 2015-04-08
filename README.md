@@ -78,11 +78,17 @@ A helper module must either:
 
 Client and Server Compatible
 ```javascript
-(function (dust) {
+function setupHelpers(dust) {
 
    // Add helpers
 
-}(typeof exports !== 'undefined' ? module.exports = require('dustjs-linkedin') : dust));
+}
+
+if (typeof exports !== 'undefined') {
+    module.exports = setupHelpers;
+} else {
+    setupHelpers(dust);
+}
 ```
 
 Alternate API
