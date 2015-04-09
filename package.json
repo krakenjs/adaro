@@ -32,6 +32,7 @@
     "dustjs-linkedin": "~2.5.0",
     "express": "^3.4.0",
     "jshint": "^2.6.0",
+    "supertest": "^0.15.0",
     "tape": "^3.5.0"
   }
 }
