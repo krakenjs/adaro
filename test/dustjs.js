@@ -5,6 +5,7 @@ var test = require('tape');
 var express = require('express');
 var engine = require('../index');
 var assertions = require('./assertions');
+var supertest = require('supertest');
 
 
 test('adaro should construct an engine', function (t) {
@@ -20,33 +21,27 @@ test('adaro should construct an engine', function (t) {
 });
 
 test('should render a template', function (t) {
-    setup(engine, function (done) {
-        inject('/index', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.RESULT);
-            done(t);
-        });
+    var app = setup(engine);
+    supertest(app).get('/index').expect(assertions.RESULT).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 
 });
 
 test('should render a template in a subdirectory', function (t) {
-    setup(engine, function (done) {
-        inject('/inc/include', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.SUBDIR);
-            done(t);
-        });
+    var app = setup(engine);
+    supertest(app).get('/inc/include').expect(assertions.SUBDIR).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('partials should render template', function (t) {
-    setup(engine, function (done) {
-        inject('/master', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.PARTIAL_NO_HELPERS);
-            done(t);
-        });
+    var app = setup(engine);
+    supertest(app).get('/master').expect(assertions.PARTIAL_NO_HELPERS).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
@@ -61,99 +56,80 @@ test('helpers should get loaded', function (t) {
 });
 
 test('helpers', function (t) {
-    setup(helpers, function (done) {
-        inject('/helper', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.HELPER);
-            done(t);
-        });
+    var app = setup(helpers);
+    supertest(app).get('/helper').expect(assertions.HELPER).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('should support a global layout', function (t) {
-    setup(layout, function (done) {
-        inject('/inc/include', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.LAYOUT);
-            done(t);
-        });
+    var app = setup(layout);
+    supertest(app).get('/inc/include').expect(assertions.LAYOUT).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('should support local layouts', function (t) {
-    setup(layout, function (done) {
-        inject('/inc/include?layout=layouts/altmaster', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.ALT_LAYOUT);
-            done(t);
-        });
+    var app = setup(layout);
+    supertest(app).get('/inc/include?layout=layouts/altmaster').expect(assertions.ALT_LAYOUT).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('should allow layout to be disabled', function (t) {
-    setup(layout, function (done) {
-        inject('/inc/include?layout=false', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.SUBDIR);
-            done(t);
-        });
+    var app = setup(layout);
+    supertest(app).get('/inc/include?layout=false').expect(assertions.SUBDIR).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('block scope', function (t) {
-    setup(engine, function (req, res) {
+    var app = setup(engine, function (req, res) {
         res.render(req.path.substr(1), { emoji: [':neckbeard:', ':poop:'] });
-    }, function (done) {
-        inject('/iterator', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.BLOCK_SCOPE);
-            done(t);
-        });
+    });
+    supertest(app).get('/iterator').expect(assertions.BLOCK_SCOPE).end(function (err, res) {
+        t.error(err);
+        t.end();
     });
 });
 
 test('streaming', function (t) {
-    setup(streaming, function (req, res) {
+    var app = setup(streaming, function (req, res) {
         res.render(req.path.substr(1), { title: 'Hello, world!' }, function (err, stream) {
             stream.pipe(res);
         });
-    }, function(done) {
-        inject('/master', function (err, data) {
-            t.error(err);
-            t.strictEqual(data, assertions.PARTIAL);
+    });
+    supertest(app).get('/master').expect(assertions.PARTIAL).end(function (err, res) {
+        t.error(err);
+        t.end();
+    });
+});
 
-            inject('/master', function (err, data) {
-                t.error(err);
-                t.strictEqual(data, assertions.PARTIAL);
-                done(t);
-            });
-        });
+test('make sure context.templateName is set for root template', function (t) {
+    t.plan(2);
+    var e = engine({
+        helpers: [
+            function (dust) {
+                dust.helpers.checkContext = function (chunk, context) {
+                    t.equal(context.templateName, 'test-context');
+                    return chunk;
+                };
+            }
+        ]
+    });
+    e('test-context', { views: path.resolve(__dirname, 'fixtures/templates')}, function (err, data) {
+        console.log(arguments);
+        t.error(err);
+        t.end();
     });
 });
 
 function streaming() {
     return engine({ stream: true });
-}
-
-function inject(path, callback) {
-    var req = require('http').request({ method: 'GET', port: 8000, path: path }, function (res) {
-        var data = [];
-
-        res.on('data', function (chunk) {
-            data.push(chunk);
-        });
-
-        res.on('end', function () {
-            var body = Buffer.concat(data).toString('utf8');
-            if (res.statusCode !== 200) {
-                callback(new Error(body));
-                return;
-            }
-            callback(null, body);
-        });
-    });
-    req.on('error', callback);
-    req.end();
 }
 
 function pushd(target) {
@@ -178,11 +154,10 @@ function helpers() {
     return eng;
 }
 
-function setup(setupEngine, setupRoute, cb) {
+function setup(setupEngine, setupRoute) {
     var app = express();
 
-    if (!cb) {
-        cb = setupRoute;
+    if (!setupRoute) {
         setupRoute = function (req, res) {
             var model = { title: 'Hello, world!' };
             if (req.query.layout) {
@@ -199,15 +174,7 @@ function setup(setupEngine, setupRoute, cb) {
 
     app.get('/*', setupRoute);
 
-    var server = app.listen(8000, function () {
-        cb(function (t) {
-            server.once('close', function () {
-                t.end();
-            });
-            server.close();
-        });
-    });
-
+    return app;
 }
 
 function layout() {
