@@ -131,6 +131,25 @@ test('streaming', function (t) {
     });
 });
 
+test('make sure context.templateName is set for root template', function (t) {
+    t.plan(2);
+    var e = engine({
+        helpers: [
+            function (dust) {
+                dust.helpers.checkContext = function (chunk, context) {
+                    t.equal(context.templateName, 'test-context');
+                    return chunk;
+                };
+            }
+        ]
+    });
+    e('test-context', { views: path.resolve(__dirname, 'fixtures/templates')}, function (err, data) {
+        console.log(arguments);
+        t.error(err);
+        t.end();
+    });
+});
+
 function streaming() {
     return engine({ stream: true });
 }
