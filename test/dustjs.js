@@ -49,7 +49,7 @@ test('helpers should get loaded', function (t) {
     var app = express();
     app.engine('dust', helpers());
     t.ok(app.engines['.dust'].dust.helpers.sep instanceof Function);
-    t.ok(app.engines['.dust'].dust.helpers.idx instanceof Function);
+    t.ok(app.engines['.dust'].dust.helpers.eq instanceof Function);
     t.ok(app.engines['.dust'].dust.helpers.node instanceof Function);
     t.ok(app.engines['.dust'].dust.helpers.browser instanceof Function);
     t.end();
