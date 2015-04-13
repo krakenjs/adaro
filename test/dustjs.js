@@ -278,7 +278,7 @@ describe('adaro', function () {
 
         it('should use helper modules', function () {
             assert.isFunction(dust.helpers.sep);
-            assert.isFunction(dust.helpers.idx);
+            assert.isFunction(dust.helpers.eq);
         });
 
 
