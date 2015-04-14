@@ -5,5 +5,4 @@ node_js:
   - "iojs"
   - "iojs-v1.1.0"
   
-before_script:
-  - npm install -g grunt-cli
+sudo: false
