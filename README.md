@@ -10,15 +10,15 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var dustjs = require('adaro');
+var adaro = require('adaro');
 
 var app = express();
 
-app.engine('dust', dustjs.dust({ ... });
+app.engine('dust', adaro.dust({ ... });
 app.set('view engine', 'dust');
 
 // For rendering precompiled templates:
-// app.engine('js', dustjs.js({ ... ));
+// app.engine('js', adaro.js({ ... ));
 // app.set('view engine', 'js');
 ```
 
