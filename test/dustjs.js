@@ -102,25 +102,6 @@ describe('adaro', function () {
             });
         });
 
-
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
-                next();
-            });
-        });
-
     });
 
 
@@ -171,26 +152,6 @@ describe('adaro', function () {
                 next();
             });
         });
-
-
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
-                next();
-            });
-        });
-
 
     });
 
