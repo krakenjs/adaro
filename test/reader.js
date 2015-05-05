@@ -137,7 +137,7 @@ describe('reader', function () {
 
         it('should load a dust template', function (next) {
 
-            dustread(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'dust' } }, function (err, src) {
+            dustread(dustjs)(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'dust' } }, function (err, src) {
                 assert(!err);
                 assert.strictEqual(src, "<!DOCTYPE html><html lang=\"en\"><head><title>{title}</title></head><body><h1>node template test</h1></body></html>");
                 next();
@@ -154,7 +154,7 @@ describe('reader', function () {
 
         it('should load a compiled dust template', function (next) {
 
-            jsread(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'js' } }, function (err, src) {
+            jsread(dustjs)(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'js' } }, function (err, src) {
                 assert(!err);
                 assert.isFunction(src);
                 assert.strictEqual(src.name, 'body_0');
@@ -165,7 +165,7 @@ describe('reader', function () {
 
         it('should handle a template in function form', function (next) {
 
-            jsread(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'js' } }, function (err, src) {
+            jsread(dustjs)(path.join('fixtures', 'templates', 'index'), 'index', { global: { ext: 'js' } }, function (err, src) {
                 assert(!err);
                 assert.isFunction(src);
                 assert.strictEqual(src.name, 'body_0');
