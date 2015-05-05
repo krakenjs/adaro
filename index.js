@@ -25,16 +25,7 @@ var dust = require('dustjs-linkedin'),
 require('dustjs-helpers');
 
 
-module.exports = Object.create(dust, {
-
-    js: {
-        enumerable: true,
-        value: engine.create.bind(undefined, 'js')
-    },
-
-    dust: {
-        enumerable: true,
-        value: engine.create.bind(undefined, 'dust')
-    }
-
-});
+module.exports = {
+    js: engine.create.bind(undefined, 'js'),
+    dust: engine.create.bind(undefined, 'dust')
+};
