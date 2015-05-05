@@ -14,8 +14,6 @@ var fs = require('fs'),
 describe('adaro', function () {
 
     var dir = process.cwd();
-    var context = { title: 'Hello, world!' };
-
 
     before(function () {
         // Ensure the test case assumes it's being run from application root.
