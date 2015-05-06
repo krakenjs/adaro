@@ -17,12 +17,7 @@
 \*───────────────────────────────────────────────────────────────────────────*/
 'use strict';
 
-var dust = require('dustjs-linkedin'),
-    engine = require('./lib/engine');
-
-
-// Load helpers
-require('dustjs-helpers');
+var engine = require('./lib/engine');
 
 
 module.exports = {
