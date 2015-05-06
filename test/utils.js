@@ -191,7 +191,7 @@ describe('utils', function () {
 
         Object.keys(tests).forEach(function (name) {
             var test = tests[name];
-            it('should ' + name, function () {
+            it(name, function () {
                 var name = utils.resolveViewDir.apply(undefined, test.args);
                 assert.strictEqual(name, test.out);
             });

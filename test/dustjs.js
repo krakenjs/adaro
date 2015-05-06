@@ -5,8 +5,6 @@ var fs = require('fs'),
     path = require('path'),
     express = require('express'),
     engine = require('../index'),
-    patch = require('../lib/patch'),
-    dust = require('dustjs-linkedin'),
     assert = require('chai').assert,
     assertions = require('./assertions');
 
@@ -14,8 +12,6 @@ var fs = require('fs'),
 describe('adaro', function () {
 
     var dir = process.cwd();
-    var context = { title: 'Hello, world!' };
-
 
     before(function () {
         // Ensure the test case assumes it's being run from application root.
@@ -30,18 +26,16 @@ describe('adaro', function () {
 
     describe('engine', function () {
 
-        afterEach(patch.undo);
-
         it('should create a dust engine', function () {
-            var config, dst;
+            var config, renderer;
 
             config = { cache: false, foo: 'bar' };
-            dst = engine.dust(config);
+            renderer = engine.dust(config);
 
-            assert.isFunction(dst);
-            assert.isObject(dst.settings);
-            assert.strictEqual(dst.settings.cache, config.cache);
-            assert.strictEqual(dst.settings.foo, config.foo);
+            assert.isFunction(renderer);
+            assert.isObject(renderer.settings);
+            assert.strictEqual(renderer.settings.cache, config.cache);
+            assert.strictEqual(renderer.settings.foo, config.foo);
         });
 
 
@@ -62,11 +56,12 @@ describe('adaro', function () {
 
     describe('dust', function () {
 
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            renderer = engine.dust({ cache: false });
+            app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -82,12 +77,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(renderer.dust.cache).length, 0);
         });
 
 
@@ -108,36 +102,18 @@ describe('adaro', function () {
             });
         });
 
-
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
-                next();
-            });
-        });
-
     });
 
 
 
     describe('compiled js', function () {
 
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('js', engine.js({ cache: false }));
+            renderer = engine.js({ cache: false });
+            app.engine('js', renderer);
             app.set('view engine', 'js');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -153,12 +129,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(renderer.dust.cache).length, 0);
         });
 
 
@@ -179,36 +154,21 @@ describe('adaro', function () {
             });
         });
 
-
-        it('should support custom onLoad', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, context, cb) {
-                invoked = true;
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.isTrue(invoked);
-                assert.strictEqual(data, assertions.SUBDIR);
-                engine.onLoad = undefined;
-                next();
-            });
-        });
-
-
     });
 
 
     describe('partials', function () {
 
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            renderer = engine.dust({
+                cache: false, helpers: [
+                    'dustjs-helpers'
+                ]
+            });
+            app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -224,12 +184,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(renderer.dust.cache).length, 0);
         });
 
 
@@ -246,12 +205,28 @@ describe('adaro', function () {
 
     describe('helpers', function () {
 
-        var app, server;
+        var app, server, dustRenderer, jsRenderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
-            app.engine('js', engine.js({ cache: false, helpers: ['dustjs-helpers', { name: './fixtures/helpers/node', arguments: { greeting:'node' } }, './fixtures/helpers/browser'] }));
+            dustRenderer = engine.dust({
+                cache: false,
+                helpers: [
+                    'dustjs-helpers',
+                    { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                    './fixtures/helpers/browser'
+                ]
+            });
+            app.engine('dust', dustRenderer);
+            jsRenderer = engine.js({
+                cache: false,
+                helpers: [
+                    'dustjs-helpers',
+                    { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                    './fixtures/helpers/browser'
+                ]
+            });
+            app.engine('js', jsRenderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -267,24 +242,28 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(jsRenderer.dust.cache).length, 0);
+            assert.strictEqual(Object.keys(dustRenderer.dust.cache).length, 0);
         });
 
 
         it('should use helper modules', function () {
-            assert.isFunction(dust.helpers.sep);
-            assert.isFunction(dust.helpers.eq);
+            assert.isFunction(jsRenderer.dust.helpers.sep);
+            assert.isFunction(jsRenderer.dust.helpers.eq);
+            assert.isFunction(dustRenderer.dust.helpers.sep);
+            assert.isFunction(dustRenderer.dust.helpers.eq);
         });
 
 
         it('should use arbitrary helpers', function () {
-            assert.isFunction(dust.helpers.node);
-            assert.isFunction(dust.helpers.browser);
+            assert.isFunction(jsRenderer.dust.helpers.node);
+            assert.isFunction(jsRenderer.dust.helpers.browser);
+            assert.isFunction(dustRenderer.dust.helpers.node);
+            assert.isFunction(dustRenderer.dust.helpers.browser);
         });
 
 
@@ -311,87 +290,14 @@ describe('adaro', function () {
     });
 
 
-    describe('onLoad API', function () {
-
-        var app, server;
-
-        before(function (next) {
-            app = express();
-            app.engine('dust', engine.dust({ cache: false, helpers: ['dustjs-helpers'] }));
-            app.set('view engine', 'dust');
-            app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
-
-            app.get('/*', function (req, res) {
-                res.render(req.path.substr(1), { title: 'Hello, world!' });
-            });
-
-            server = app.listen(8000, next);
-        });
-
-
-        after(function (next) {
-            engine.onLoad = undefined;
-            server.once('close', next);
-            server.close();
-            patch.undo();
-        });
-
-
-        afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
-        });
-
-
-        it('should support the default onLoad handler', function (next) {
-            var invoked = false;
-
-            engine.onLoad = function (name, cb) {
-                invoked = true;
-                name = path.join(process.cwd(), 'fixtures', 'templates', 'inc', 'include.dust');
-                fs.readFile(name, 'utf8', cb);
-            };
-
-            inject('/inc/include', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.SUBDIR);
-                assert.ok(invoked);
-                app.set('view engine', 'dust');
-                next();
-            });
-        });
-
-
-        it('should support passing context to the onLoad handler', function (next) {
-            var templates = [];
-            var dustFile = path.join(process.cwd(), 'fixtures', 'templates', 'master.dust');
-
-            engine.onLoad = function (name, context, callback) {
-                name = path.join(context.global.settings.views, name + '.' + context.global.ext);
-                templates.push(name);
-                fs.readFile(name, 'utf8', callback);
-            };
-
-            inject('/master', function (err, data) {
-                err && console.log(err);
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.PARTIAL);
-                assert.strictEqual(templates.length, 2);
-                assert.strictEqual(templates[0], dustFile);
-                next();
-            });
-        });
-
-    });
-
-
     describe('layout', function () {
 
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false, layout: 'layouts/master' }));
+            renderer = engine.dust({ cache: false, layout: 'layouts/master' });
+            app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -411,12 +317,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(renderer.dust.cache).length, 0);
         });
 
 
@@ -451,11 +356,19 @@ describe('adaro', function () {
 
     describe('block scope', function () {
 
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: false }));
+            renderer = engine.dust({
+                cache: false,
+                helpers: [
+                    'dustjs-helpers',
+                    { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                    './fixtures/helpers/browser'
+                ]
+            });
+            app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -471,12 +384,11 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
+            assert.strictEqual(Object.keys(renderer.dust.cache).length, 0);
         });
 
 
@@ -491,83 +403,13 @@ describe('adaro', function () {
     });
 
 
-    describe('support monkey-patched dust', function () {
-
-        var app, server, model, render;
-
-        model = {
-            address: {
-                city: 'Campbell',
-                state: 'CA',
-                zip: '95008'
-            },
-            states: [
-                {
-                    name: 'California',
-                    cities: [
-                        { name: 'San Diego' },
-                        { name: 'San Francisco' },
-                        { name: 'San Jose' }
-                    ]
-                },
-                {
-                    name: 'Virginia',
-                    cities: [
-                        { name: 'Fairfax' },
-                        { name: 'Gainsville' },
-                        { name: 'Manassass' }
-                    ]
-                }
-            ]
-        };
-
-        before(function (next) {
-            // Monkey-patch
-            render = dust.render;
-
-            app = express();
-            app.engine('dust', engine.dust({ cache: false }));
-            app.set('view engine', 'dust');
-            app.set('view cache', false);
-            app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
-
-            app.get('/*', function (req, res) {
-                res.render(req.path.substr(1), model);
-            });
-
-            server = app.listen(8000, next);
-        });
-
-
-        after(function (next) {
-            server.once('close', next);
-            server.close();
-            dust.render = render;
-            patch.undo();
-        });
-
-
-        afterEach(function () {
-            assert.strictEqual(Object.keys(dust.cache).length, 0);
-        });
-
-
-        it('should function without error', function (next) {
-            inject('/nested/index', function (err, data) {
-                assert.ok(!err);
-                assert.strictEqual(data, assertions.MAKE_BASE);
-                next();
-            });
-        });
-    });
-
-
     describe('dust cache', function () {
-        var app, server;
+        var app, server, renderer;
 
         before(function (next) {
             app = express();
-            app.engine('dust', engine.dust({ cache: true }));
+            renderer = engine.dust({ cache: true });
+            app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -583,26 +425,25 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            dust.cache = {};
+            renderer.dust.cache = {};
         });
 
 
         it('should cache templates if enabled', function (next) {
-            assert.isUndefined(dust.cache.index);
+            assert.isUndefined(renderer.dust.cache.index);
 
             inject('/index', function (err, data) {
-                assert.isFunction(dust.cache.index);
+                assert.isFunction(renderer.dust.cache.index);
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
-                    assert.isFunction(dust.cache.index);
+                    assert.isFunction(renderer.dust.cache.index);
                     assert.ok(!err);
                     assert.strictEqual(data, assertions.RESULT);
                     next();
@@ -614,12 +455,13 @@ describe('adaro', function () {
 
 
     describe('js cache', function () {
-        var app, server;
+        var app, server, renderer;
 
 
         before(function (next) {
             app = express();
-            app.engine('js', engine.js({ cache: true }));
+            renderer = engine.js({ cache: true });
+            app.engine('js', renderer);
             app.set('view engine', 'js');
             app.set('view cache', false);
             app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -635,26 +477,25 @@ describe('adaro', function () {
         after(function (next) {
             server.once('close', next);
             server.close();
-            patch.undo();
         });
 
 
         afterEach(function () {
-            dust.cache = {};
+            renderer.dust.cache = {};
         });
 
 
         it('should cache templates if enabled', function (next) {
-            assert.isUndefined(dust.cache.index);
+            assert.isUndefined(renderer.dust.cache.index);
 
             inject('/index', function (err, data) {
-                assert.isFunction(dust.cache.index);
+                assert.isFunction(renderer.dust.cache.index);
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
-                    assert.isFunction(dust.cache.index);
+                    assert.isFunction(renderer.dust.cache.index);
                     assert.ok(!err);
                     assert.strictEqual(data, assertions.RESULT);
                     next();
@@ -672,8 +513,24 @@ describe('adaro', function () {
 
             before(function (next) {
                 app = express();
-                app.engine('dust', engine.dust({ cache: false, stream: true }));
-                app.engine('js', engine.js({ cache: false, stream: true }));
+                app.engine('dust', engine.dust({
+                    cache: false,
+                    stream: true,
+                    helpers: [
+                        'dustjs-helpers',
+                        { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                        './fixtures/helpers/browser'
+                    ]
+                }));
+                app.engine('js', engine.js({
+                    cache: false,
+                    stream: true,
+                    helpers: [
+                        'dustjs-helpers',
+                        { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                        './fixtures/helpers/browser'
+                    ]
+                }));
                 app.set('view engine', 'dust');
                 app.set('view cache', false);
                 app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -695,7 +552,6 @@ describe('adaro', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
-                patch.undo();
             });
 
 
@@ -734,8 +590,24 @@ describe('adaro', function () {
 
             before(function (next) {
                 app = express();
-                app.engine('dust', engine.dust({ cache: true, stream: true }));
-                app.engine('js', engine.js({ cache: true, stream: true }));
+                app.engine('dust', engine.dust({
+                    cache: true,
+                    stream: true,
+                    helpers: [
+                        'dustjs-helpers',
+                        { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                        './fixtures/helpers/browser'
+                    ]
+                }));
+                app.engine('js', engine.js({
+                    cache: true,
+                    stream: true,
+                    helpers: [
+                        'dustjs-helpers',
+                        { name: './fixtures/helpers/node', arguments: { greeting:'node' } },
+                        './fixtures/helpers/browser'
+                    ]
+                }));
                 app.set('view engine', 'dust');
                 app.set('view cache', false);
                 app.set('views', path.join(process.cwd(), 'fixtures', 'templates'));
@@ -753,7 +625,6 @@ describe('adaro', function () {
             after(function (next) {
                 server.once('close', next);
                 server.close();
-                patch.undo();
             });
 
 

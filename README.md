@@ -103,18 +103,10 @@ module.exports = function (dust) {
 
 
 #### `cache` (optional, defaults to true) Boolean
-Set to true to enable dust template caching, or false to disable. If a custom onLoad handler is defined, caching is
-disabled and assumed to be handled by the client.
+Set to true to enable dust template caching, or false to disable.
 
 
-#### `onLoad` (optional) Function with the signature `function (name, [context], callback)`
-Define a file read handler for use by dust in loading files.
 ```javascript
-dustjs.onLoad = function (name, context, callback) {
-    // Custom file read/processing pipline
-    callback(err, str);
-}
-
 app.engine('dust', dustjs.dust({ cache: false }));
 app.set('view engine', 'dust');
 ```
