@@ -51,6 +51,22 @@ describe('adaro', function () {
             assert.strictEqual(js.settings.foo, config.foo);
         });
 
+        it('should pass renderOptions to onLoad', function (next) {
+            var config, renderer;
+
+            config = { cache: false, foo: 'bar' };
+            renderer = engine.dust(config);
+            renderer.dust.onLoad = function (name, options, cb) {
+                cb(null, options.content);
+            };
+
+            renderer('unimportant', { renderOptions: { content: 'content here' } }, function (err, rendered) {
+                assert.ok(!err);
+                assert.strictEqual(rendered, 'content here');
+                next();
+
+            });
+        });
     });
 
 
