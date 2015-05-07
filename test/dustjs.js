@@ -36,6 +36,7 @@ describe('adaro', function () {
             assert.isObject(renderer.settings);
             assert.strictEqual(renderer.settings.cache, config.cache);
             assert.strictEqual(renderer.settings.foo, config.foo);
+            assert.strictEqual(renderer.dust.config.foo, config.foo);
         });
 
 
@@ -49,6 +50,7 @@ describe('adaro', function () {
             assert.isObject(js.settings);
             assert.strictEqual(js.settings.cache, config.cache);
             assert.strictEqual(js.settings.foo, config.foo);
+            assert.strictEqual(js.dust.config.foo, config.foo);
         });
 
         it('should pass renderOptions to onLoad', function (next) {
@@ -76,7 +78,7 @@ describe('adaro', function () {
 
         before(function (next) {
             app = express();
-            renderer = engine.dust({ cache: false });
+            renderer = engine.dust({ cache: false, whitespace: true });
             app.engine('dust', renderer);
             app.set('view engine', 'dust');
             app.set('view cache', false);
@@ -105,6 +107,14 @@ describe('adaro', function () {
             inject('/index', function (err, data) {
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.RESULT);
+                next();
+            });
+        });
+
+        it('should preserve whitespace', function (next) {
+            inject('/whitespace', function (err, data) {
+                assert.ok(!err);
+                assert.strictEqual(data, assertions.WHITESPACE);
                 next();
             });
         });

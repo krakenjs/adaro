@@ -16,6 +16,8 @@
   
   "BLOCK_SCOPE": "<h1>node template test </h1>:neckbeard:<h1>node template test </h1>:poop:",
     
-  "MAKE_BASE": "CampbellCA95008<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>"
+  "MAKE_BASE": "CampbellCA95008<h1>California</h1><h2>San Diego</h2><h2>San Francisco</h2><h2>San Jose</h2><h1>Virginia</h1><h2>Fairfax</h2><h2>Gainsville</h2><h2>Manassass</h2>",
+
+  "WHITESPACE": "<p>\n    Hello, world!\n</p>\n"
 
 }
