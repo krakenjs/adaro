@@ -10,11 +10,26 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var dustjs = require('adaro');
-
 var app = express();
 
-app.engine('dust', dustjs.dust({ ... });
+var adaro = require('adaro');
+
+var options = {
+  helpers: [
+    //NOTE: function has to take dust as an argument.
+    //The following function defines @myHelper helper
+    function (dust) { dust.helpers.myHelper = function (a, b, c, d) {} },
+    '../my-custom-helpers',   //Relative path to your custom helpers works
+    'dustjs-helpers',   //So do installed modules
+    {
+      name: '../my-custom-helpers/helper-to-render-data-with-args',
+      // or use this signature if you need to pass in additional args
+      arguments: { "debug": true }
+    }
+  ]
+};
+
+app.engine('dust', adaro.dust(options));
 app.set('view engine', 'dust');
 
 // For rendering precompiled templates:
