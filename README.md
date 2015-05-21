@@ -43,50 +43,6 @@ Make sure that if you've `app.set('views', somepath)` that the path separators a
 ### Configuration
 Config options can be used to specify dust helpers, enabled/disable caching, and custom file loading handlers.
 
-### `layout` (optional) String, Sets default template to use for layout
-Dust understands partials, but doesn't understand layouts. Layouts allow you to
-skin your application in different ways without having to rewrite all of your
-partials.
-
-For example, here are two Dust templates: a layout, and a content page. The
-layout includes a special partial with the dynamic name `{_main}`. The content
-page has no knowledge of layout; it is itself just a partial.
-
-```html
-<html>
-  <body>
-    {>"{_main}"/}
-  </body>
-</html>
-```
-
-```html
-<div>Hello!</div>
-```
-
-Using `layout`, when a template is rendered, a layout can be
-specified or disabled. As long as the layout template includes the dynamic partial via
-`{>"{_main}"/}` the template you asked for will be wrapped in the specified
-layout.
-
-```js
-// Use alternate layout
-dust.render('index', { layout: 'myLayout' }, ...);
-```
-
-```js
-// Disable layout altogether
-dust.render('index', { layout: false }, ...);
-```
-
-```html
-<html>
-  <body>
-    <div>Hello!</div>
-  </body>
-</html>
-```
-
 
 
 #### `helpers` (optional) String Array, helper module names
@@ -136,3 +92,14 @@ module.exports = function (dust, [options]) {
     };
 };
 ```
+
+## Breaking changes
+
+#### `v1.0.0`
+
+* Removed the `layout:` option to render and in configuration
+* Dust is our own private instance, not global. If you load helpers, you must do it in the configuration of adaro.
+* We outright require dust. We will not use your application's instslled version.
+* Dust ~2.7.1 is required. Dust minors are breaking changes, so those affect users of this module too.
+* Paths passed to the engine that are filesystem absolute paths will be used as is, and not resolved against the view root.
+* `dustjs-helpers` is not loaded for you automatically. Add it to your helpers configuration if you want it. Make sure you use a version compatible with the dustjs-linkedin that adaro uses.
