@@ -3,7 +3,6 @@
 
 var path = require('path'),
     assert = require('chai').assert,
-    file = require('../lib/reader/file'),
     engine = require('../lib/engine');
 
 describe('async rendering & races', function () {
