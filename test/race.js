@@ -97,7 +97,7 @@ describe('async rendering & races', function () {
                 var context = clone(defaultContext);
                 context.ext = 'dust';
 
-                instance('/nested/index.dust', context, function (err, template) {
+                instance('nested/index.dust', context, function (err, template) {
                     assert.ok(!err);
                     assert.isString(template);
                     done();
@@ -115,7 +115,7 @@ describe('async rendering & races', function () {
                 var context = clone(defaultContext);
                 context.ext = 'dust';
 
-                instance('/nested/index.dust', context, function (err, template) {
+                instance('nested/index.dust', context, function (err, template) {
                     assert.ok(!err);
                     assert.isString(template);
                     done();
@@ -137,7 +137,7 @@ describe('async rendering & races', function () {
                 var context = clone(defaultContext);
                 context.ext = 'js';
 
-                instance('/nested/index.js', context, function (err, template) {
+                instance('nested/index.js', context, function (err, template) {
                     assert.ok(!err);
                     assert.isString(template);
                     done();
@@ -155,7 +155,7 @@ describe('async rendering & races', function () {
                 var context = clone(defaultContext);
                 context.ext = 'js';
 
-                instance('/nested/index.js', context, function (err, template) {
+                instance('nested/index.js', context, function (err, template) {
                     assert.ok(!err);
                     assert.isString(template);
                     done();
