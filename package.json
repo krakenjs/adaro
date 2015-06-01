@@ -16,12 +16,7 @@
     "nodejs"
   ],
   "author": "Erik Toth <ertoth@paypal.com>",
-  "licenses": [
-    {
-      "type": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
-  ],
+  "license": "Apache-2.0",
   "dependencies": {
     "core-util-is": "^1.0.0",
     "debuglog": "^1.0.1",
