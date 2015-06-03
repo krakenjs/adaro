@@ -100,7 +100,7 @@ module.exports = function (dust, [options]) {
 
 * Removed the `layout:` option to render and in configuration
 * Dust is our own private instance, not global. If you load helpers, you must do it in the configuration of adaro.
-* We outright require dust. We will not use your application's instslled version.
+* We outright require dust. We will not use your application's installed version.
 * Dust ~2.7.1 is required. Dust minors are breaking changes, so those affect users of this module too.
 * Paths passed to the engine that are filesystem absolute paths will be used as is, and not resolved against the view root.
 * `dustjs-helpers` is not loaded for you automatically. Add it to your helpers configuration if you want it. Make sure you use a version compatible with the dustjs-linkedin that adaro uses.
