@@ -10,6 +10,7 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
+
 var app = express();
 
 var adaro = require('adaro');
@@ -29,11 +30,11 @@ var options = {
   ]
 };
 
-app.engine('dust', adaro.dust(options));
+app.engine('dust', adaro(options));
 app.set('view engine', 'dust');
 
 // For rendering precompiled templates:
-// app.engine('js', dustjs.js({ ... ));
+// app.engine('js', adaro.js({ ... ));
 // app.set('view engine', 'js');
 ```
 
