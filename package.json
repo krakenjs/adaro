@@ -18,6 +18,7 @@
   "author": "Erik Toth <ertoth@paypal.com>",
   "license": "Apache-2.0",
   "dependencies": {
+    "aproba": "^1.0.1",
     "core-util-is": "^1.0.0",
     "debuglog": "^1.0.1",
     "dustjs-helpers": "~1.7.0",
