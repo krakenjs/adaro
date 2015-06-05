@@ -397,17 +397,16 @@ describe('adaro', function () {
 
 
         it('should cache templates if enabled', function (next) {
-            var cachename = path.resolve(app.get('views'), "index.dust");
-            assert.isUndefined(renderer.dust.cache[cachename]);
+            assert.isUndefined(renderer.dust.cache.index);
 
             inject('/index', function (err, data) {
-                assert.ok(typeof renderer.dust.cache[cachename] === 'function');
+                assert.ok(typeof renderer.dust.cache.index === 'function');
                 assert.ok(!err);
                 assert.strictEqual(data, assertions.RESULT);
 
                 // This request should pull from cache
                 inject('/index', function (err, data) {
-                    assert.ok(typeof renderer.dust.cache[cachename] === 'function');
+                    assert.ok(typeof renderer.dust.cache.index === 'function');
                     assert.ok(!err);
                     assert.strictEqual(data, assertions.RESULT);
                     next();
