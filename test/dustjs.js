@@ -62,11 +62,10 @@ describe('adaro', function () {
                 cb(null, options.content);
             };
 
-            renderer('unimportant', { renderOptions: { content: 'content here' } }, function (err, rendered) {
+            renderer.call({ root: 'whatever' }, 'unimportant', { renderOptions: { content: 'content here' } }, function (err, rendered) {
                 assert.ok(!err);
                 assert.strictEqual(rendered, 'content here');
                 next();
-
             });
         });
     });
