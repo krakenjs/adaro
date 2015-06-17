@@ -1,6 +1,6 @@
 {
   "name": "adaro",
-  "version": "0.1.10",
+  "version": "1.0.0-15",
   "description": "An express renderer for DustJs Templates",
   "main": "index.js",
   "scripts": {
@@ -16,19 +16,20 @@
     "nodejs"
   ],
   "author": "Erik Toth <ertoth@paypal.com>",
-  "licenses": [
-    {
-      "type": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
-  ],
+  "license": "Apache-2.0",
   "dependencies": {
-    "core-util-is": "^1.0.0"
+    "aproba": "^1.0.1",
+    "core-util-is": "^1.0.0",
+    "debuglog": "^1.0.1",
+    "dustjs-helpers": "~1.7.0",
+    "dustjs-linkedin": "~2.7.1",
+    "freshy": "^1.0.0",
+    "path-is-absolute": "^1.0.0",
+    "verror": "^1.6.0"
   },
   "devDependencies": {
     "chai": "^1.5.0",
-    "dustjs-helpers": "~1.6.3",
-    "dustjs-linkedin": "~2.6.0",
+    "engine-munger": "^1.0.0-0",
     "express": "^3.4.0",
     "jshint": "^2.6.0",
     "mocha": "^2.1.0"

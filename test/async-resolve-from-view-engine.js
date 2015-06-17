@@ -7,6 +7,7 @@ var fs = require('fs'),
     engine = require('../index'),
     assert = require('chai').assert,
     assertions = require('./assertions');
+    var munger = require('engine-munger');
 
 
 describe('adaro', function () {
@@ -66,6 +67,7 @@ describe('adaro', function () {
                 assert.ok(!err);
                 assert.strictEqual(rendered, 'content here');
                 next();
+
             });
         });
     });

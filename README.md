@@ -10,11 +10,27 @@ included by default in this module.
 
 ```javascript
 var express = require('express');
-var adaro = require('adaro');
 
 var app = express();
 
-app.engine('dust', adaro.dust({ ... });
+var adaro = require('adaro');
+
+var options = {
+  helpers: [
+    //NOTE: function has to take dust as an argument.
+    //The following function defines @myHelper helper
+    function (dust) { dust.helpers.myHelper = function (a, b, c, d) {} },
+    '../my-custom-helpers',   //Relative path to your custom helpers works
+    'dustjs-helpers',   //So do installed modules
+    {
+      name: '../my-custom-helpers/helper-to-render-data-with-args',
+      // or use this signature if you need to pass in additional args
+      arguments: { "debug": true }
+    }
+  ]
+};
+
+app.engine('dust', adaro(options));
 app.set('view engine', 'dust');
 
 // For rendering precompiled templates:
@@ -27,50 +43,6 @@ Make sure that if you've `app.set('views', somepath)` that the path separators a
 
 ### Configuration
 Config options can be used to specify dust helpers, enabled/disable caching, and custom file loading handlers.
-
-### `layout` (optional) String, Sets default template to use for layout
-Dust understands partials, but doesn't understand layouts. Layouts allow you to
-skin your application in different ways without having to rewrite all of your
-partials.
-
-For example, here are two Dust templates: a layout, and a content page. The
-layout includes a special partial with the dynamic name `{_main}`. The content
-page has no knowledge of layout; it is itself just a partial.
-
-```html
-<html>
-  <body>
-    {>"{_main}"/}
-  </body>
-</html>
-```
-
-```html
-<div>Hello!</div>
-```
-
-Using `layout`, when a template is rendered, a layout can be
-specified or disabled. As long as the layout template includes the dynamic partial via
-`{>"{_main}"/}` the template you asked for will be wrapped in the specified
-layout.
-
-```js
-// Use alternate layout
-dust.render('index', { layout: 'myLayout' }, ...);
-```
-
-```js
-// Disable layout altogether
-dust.render('index', { layout: false }, ...);
-```
-
-```html
-<html>
-  <body>
-    <div>Hello!</div>
-  </body>
-</html>
-```
 
 
 
@@ -103,18 +75,10 @@ module.exports = function (dust) {
 
 
 #### `cache` (optional, defaults to true) Boolean
-Set to true to enable dust template caching, or false to disable. If a custom onLoad handler is defined, caching is
-disabled and assumed to be handled by the client.
+Set to true to enable dust template caching, or false to disable.
 
 
-#### `onLoad` (optional) Function with the signature `function (name, [context], callback)`
-Define a file read handler for use by dust in loading files.
 ```javascript
-dustjs.onLoad = function (name, context, callback) {
-    // Custom file read/processing pipline
-    callback(err, str);
-}
-
 app.engine('dust', dustjs.dust({ cache: false }));
 app.set('view engine', 'dust');
 ```
@@ -130,11 +94,13 @@ module.exports = function (dust, [options]) {
 };
 ```
 
-Notes
------
+## Breaking changes
 
-### `dustjs-linkedin` and `dustjs-helpers` requirements
+#### `v1.0.0`
 
-You need to add these libs as dependencies in your app's own package.json.
-
-We intentionally didn't add the dependency to this module's package.json such that we didn't want to be in control of it or its versions on behalf of apps. That way app owners can manage the dependency however they see fit and this module can just "enhance" the existing library. It does assume the version of dust.js doesn't change template loading or streaming behavior, but beyond that compatibility should be fine. If there IS a major version change to dust APIs we'll be sure to manage those changes here, so the upgrade/handling of it is transparent.
+* Removed the `layout:` option to render and in configuration
+* Dust is our own private instance, not global. If you load helpers, you must do it in the configuration of adaro.
+* We outright require dust. We will not use your application's installed version.
+* Dust ~2.7.1 is required. Dust minors are breaking changes, so those affect users of this module too.
+* Paths passed to the engine that are filesystem absolute paths will be used as is, and not resolved against the view root.
+* `dustjs-helpers` is not loaded for you automatically. Add it to your helpers configuration if you want it. Make sure you use a version compatible with the dustjs-linkedin that adaro uses.
