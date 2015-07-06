@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jshint . && mocha --timeout=0 test"
   },
+  "homepage": "http://krakenjs.com/adaro",
   "repository": {
     "type": "git",
     "url": "https://github.com/krakenjs/adaro.git"
