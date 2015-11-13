@@ -30,7 +30,7 @@ var options = {
   ]
 };
 
-app.engine('dust', adaro(options));
+app.engine('dust', adaro.dust(options));
 app.set('view engine', 'dust');
 
 // For rendering precompiled templates:
