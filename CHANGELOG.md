@@ -1,3 +1,8 @@
+##### v1.0.2
+
+**Bugs**
+- Fix mis-documented API in README
+
 ##### v0.1.5 (in progress) - 2013xxxx
 **Bugs**
 - Fixed parallel rendering race condition.
