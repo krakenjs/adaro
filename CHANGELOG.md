@@ -1,3 +1,8 @@
+##### v1.0.3
+
+**Refactor**
+- rename variable in reqwire to make more clear that it represents dust helpers
+
 ##### v1.0.2
 
 **Bugs**
