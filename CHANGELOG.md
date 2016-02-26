@@ -1,3 +1,10 @@
+##### v1.0.4
+
+**Bugs**
+
+- Fix issue with nested partials not getting data model in context. #92
+- Add an explicit check for a non-template value in the template cache. #91
+
 ##### v1.0.3
 
 **Refactor**
