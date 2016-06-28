@@ -23,7 +23,7 @@
     "core-util-is": "^1.0.0",
     "debuglog": "^1.0.1",
     "dustjs-helpers": "~1.7.0",
-    "dustjs-linkedin": "~2.7.1",
+    "dustjs-linkedin": "~2.7.2",
     "freshy": "^1.0.0",
     "path-is-absolute": "^1.0.0",
     "verror": "^1.6.0"
