@@ -1,7 +1,4 @@
-adaro
-===================
-
-Lead Maintainer: [Aria Stewart](https://github.com/aredridel)  
+# adaro
 
 [![Build Status](https://travis-ci.org/krakenjs/adaro.svg?branch=master)](https://travis-ci.org/krakenjs/adaro)
 
@@ -48,7 +45,7 @@ Config options can be used to specify dust helpers, enabled/disable caching, and
 
 #### `helpers` (optional) String Array, helper module names
 A helper module must either:
-- Conform to the API established by [dustjs-helpers] (https://github.com/linkedin/dustjs-helpers) provided by LinkedIn or 
+- Conform to the API established by [dustjs-helpers] (https://github.com/linkedin/dustjs-helpers) provided by LinkedIn or
 - Export a function which accepts a single argument (being dust itself). Such files should generally be designed for use on both client and server.
 
 Client and Server Compatible
